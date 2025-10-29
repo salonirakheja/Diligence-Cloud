@@ -1593,9 +1593,9 @@
                     const updatedAt = p.updated_at ? new Date(p.updated_at).toLocaleDateString() : 'Never';
                     
                     return `
-                        <div class="project-card" onclick="openProject('${p.id}')">
+                        <div class="project-card" id="project-${p.id}" onclick="openProject('${p.id}')">
                             <div class="project-card-header">
-                                <h3 class="project-card-title">${p.name}</h3>
+                                <h3 class="project-card-title"><span class="project-name">${p.name}</span></h3>
                                 <div class="project-card-actions">
                                     <button class="project-card-action-btn" onclick="event.stopPropagation(); enableInlineEdit('${p.id}', '${p.name.replace(/'/g, "\\'")}')" title="Edit">✏️</button>
                                     <button class="project-card-action-btn delete" onclick="event.stopPropagation(); deleteProject('${p.id}', '${p.name.replace(/'/g, "\\'")}')" title="Delete">🗑️</button>
