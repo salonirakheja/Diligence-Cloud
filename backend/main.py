@@ -34,9 +34,14 @@ PROJECT_ROOT = BACKEND_DIR.parent
 # Load environment variables
 load_dotenv(PROJECT_ROOT / ".env")
 
-# Initialize Arize Observability
-from arize_config import initialize_arize_observability
-arize_config = initialize_arize_observability()
+# Initialize Arize Observability (optional - allow server to start even if this fails)
+arize_config = None
+try:
+    from arize_config import initialize_arize_observability
+    arize_config = initialize_arize_observability()
+except Exception as e:
+    print(f"Warning: Could not initialize Arize Observability: {e}")
+    print("Continuing without observability...")
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -228,6 +233,39 @@ async def update_project(project_id: str, update: ProjectUpdate):
         raise HTTPException(status_code=500, detail=f"Failed to update project: {str(e)}")
 
 
+@app.post("/api/projects/{project_id}/sync-counts")
+async def sync_project_counts(project_id: str):
+    """
+    Sync document and question counts for a project based on actual data
+    Useful if counts have gotten out of sync
+    """
+    try:
+        # Get actual counts from vector store
+        documents = vector_store.list_documents(project_id=project_id)
+        qa_count = vector_store.get_qa_count(project_id) if hasattr(vector_store, 'get_qa_count') else 0
+        
+        # Update project counts
+        project = project_manager.get_project(project_id)
+        if project:
+            project["document_count"] = len(documents)
+            project["question_count"] = qa_count
+            project["updated_at"] = datetime.now().isoformat()
+            project_manager._save_projects()
+            
+            return {
+                "success": True,
+                "document_count": len(documents),
+                "question_count": qa_count
+            }
+        else:
+            raise HTTPException(status_code=404, detail="Project not found")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to sync counts: {str(e)}")
+
+
 @app.delete("/api/projects/{project_id}")
 async def delete_project(project_id: str):
     """Delete a project and all its documents"""
@@ -312,8 +350,8 @@ async def upload_document(file: UploadFile = File(...), project_id: str = "defau
             project_id=project_id
         )
         
-        # Update project document count
-        project_manager.increment_document_count(project_id)
+        # Note: document_count is calculated dynamically by the API on each request
+        # No need to manually increment it
         
         return {
             "success": True,
@@ -376,6 +414,7 @@ async def ask_question(q: Question):
             )
             
             if not relevant_docs:
+                # Don't increment question count if there are no documents
                 return Answer(
                     question=q.question,
                     answer="I don't have any documents to answer this question. Please upload relevant documents first.",
@@ -407,13 +446,8 @@ async def ask_question(q: Question):
                     confidence=result.get("confidence", 0)
                 )
                 
-                # Update project question count based on actual stored count
-                actual_count = vector_store.get_qa_count(project_id)
-                project = project_manager.get_project(project_id)
-                if project:
-                    project["question_count"] = actual_count
-                    project["updated_at"] = datetime.now().isoformat()
-                    project_manager._save_projects()
+                # Note: question_count is calculated dynamically by the API on each request
+                # No need to manually increment it
             
             # Set success status
             span.set_status(Status(StatusCode.OK))
@@ -514,9 +548,8 @@ async def delete_document(doc_id: str):
             if file_path.exists():
                 file_path.unlink()
         
-        # Update project document count
-        if project_id:
-            project_manager.decrement_document_count(project_id)
+        # Note: document_count is calculated dynamically by the API on each request
+        # No need to manually decrement it
         
         return {
             "success": True,

@@ -2252,7 +2252,7 @@
                 input.disabled = false;
                 updateThread(id);
                 updateStats();
-                updateProjectStats();
+                loadProjects(); // Reload project list to refresh question count
                 
                 if (!q || !q.parentId) {
                     addQ();
@@ -2318,7 +2318,7 @@
             }
             loadDocs();
             loadProjectDocuments(currentProjectId);
-            updateProjectStats();
+            loadProjects(); // Reload project list to refresh counts
         };
         
         async function loadDocs() {

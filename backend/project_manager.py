@@ -62,14 +62,13 @@ class ProjectManager:
             Created project dict
         """
         project_id = str(uuid.uuid4())
+        # Note: document_count and question_count are calculated dynamically by the API, not stored here
         project = {
             "id": project_id,
             "name": name,
             "description": description,
             "created_at": datetime.now().isoformat(),
-            "updated_at": datetime.now().isoformat(),
-            "document_count": 0,
-            "question_count": 0
+            "updated_at": datetime.now().isoformat()
         }
         
         self.projects.append(project)
