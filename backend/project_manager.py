@@ -135,30 +135,6 @@ class ProjectManager:
         
         return False
     
-    def increment_document_count(self, project_id: str) -> None:
-        """Increment document count for a project"""
-        project = self.get_project(project_id)
-        if project:
-            project["document_count"] = project.get("document_count", 0) + 1
-            project["updated_at"] = datetime.now().isoformat()
-            self._save_projects()
-    
-    def decrement_document_count(self, project_id: str) -> None:
-        """Decrement document count for a project"""
-        project = self.get_project(project_id)
-        if project:
-            project["document_count"] = max(0, project.get("document_count", 0) - 1)
-            project["updated_at"] = datetime.now().isoformat()
-            self._save_projects()
-    
-    def increment_question_count(self, project_id: str) -> None:
-        """Increment question count for a project"""
-        project = self.get_project(project_id)
-        if project:
-            project["question_count"] = project.get("question_count", 0) + 1
-            project["updated_at"] = datetime.now().isoformat()
-            self._save_projects()
-    
     def get_project_vector_store_path(self, project_id: str) -> str:
         """Get the vector store path for a project"""
         return f"./data/vector_db/project_{project_id}"

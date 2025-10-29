@@ -979,19 +979,6 @@
             border-color: #dc2626;
         }
         
-        .project-card-meta {
-            display: flex;
-            gap: 24px;
-            margin-bottom: 16px;
-            font-size: 0.875rem;
-            color: #6b7280;
-        }
-        
-        .project-card-stat {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
         
         .project-card-footer {
             border-top: 1px solid #f3f4f6;
@@ -1603,8 +1590,6 @@
             
             if (projects.length > 0) {
                 grid.innerHTML = projects.map(p => {
-                    const docCount = p.document_count || 0;
-                    const qCount = p.question_count || 0;
                     const updatedAt = p.updated_at ? new Date(p.updated_at).toLocaleDateString() : 'Never';
                     
                     return `
@@ -1615,10 +1600,6 @@
                                     <button class="project-card-action-btn" onclick="event.stopPropagation(); enableInlineEdit('${p.id}', '${p.name.replace(/'/g, "\\'")}')" title="Edit">✏️</button>
                                     <button class="project-card-action-btn delete" onclick="event.stopPropagation(); deleteProject('${p.id}', '${p.name.replace(/'/g, "\\'")}')" title="Delete">🗑️</button>
                                 </div>
-                            </div>
-                            <div class="project-card-meta">
-                                <div class="project-card-stat">📄 ${docCount} documents</div>
-                                <div class="project-card-stat">❓ ${qCount} questions</div>
                             </div>
                             ${p.description ? `<p style="color: #6b7280; font-size: 0.875rem; margin-bottom: 16px;">${p.description}</p>` : ''}
                             <div class="project-card-footer">

@@ -152,14 +152,7 @@ async def list_projects():
     try:
         projects = project_manager.list_projects()
         
-        # Update counts from actual database
-        for project in projects:
-            project_id = project.get("id")
-            # Get actual document count
-            documents = vector_store.list_documents(project_id=project_id)
-            project["document_count"] = len(documents)
-            # Get actual Q&A count
-            project["question_count"] = vector_store.get_qa_count(project_id)
+        # Note: Document and question counts removed per user request
         
         return {
             "success": True,
@@ -194,12 +187,7 @@ async def get_project(project_id: str):
         if not project:
             raise HTTPException(status_code=404, detail="Project not found")
         
-        # Get document count for this project
-        documents = vector_store.list_documents(project_id=project_id)
-        project["document_count"] = len(documents)
-        
-        # Get actual Q&A count from database
-        project["question_count"] = vector_store.get_qa_count(project_id)
+        # Note: Document and question counts removed per user request
         
         return {
             "success": True,
@@ -231,39 +219,6 @@ async def update_project(project_id: str, update: ProjectUpdate):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to update project: {str(e)}")
-
-
-@app.post("/api/projects/{project_id}/sync-counts")
-async def sync_project_counts(project_id: str):
-    """
-    Sync document and question counts for a project based on actual data
-    Useful if counts have gotten out of sync
-    """
-    try:
-        # Get actual counts from vector store
-        documents = vector_store.list_documents(project_id=project_id)
-        qa_count = vector_store.get_qa_count(project_id) if hasattr(vector_store, 'get_qa_count') else 0
-        
-        # Update project counts
-        project = project_manager.get_project(project_id)
-        if project:
-            project["document_count"] = len(documents)
-            project["question_count"] = qa_count
-            project["updated_at"] = datetime.now().isoformat()
-            project_manager._save_projects()
-            
-            return {
-                "success": True,
-                "document_count": len(documents),
-                "question_count": qa_count
-            }
-        else:
-            raise HTTPException(status_code=404, detail="Project not found")
-            
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to sync counts: {str(e)}")
 
 
 @app.delete("/api/projects/{project_id}")
@@ -350,8 +305,7 @@ async def upload_document(file: UploadFile = File(...), project_id: str = "defau
             project_id=project_id
         )
         
-        # Note: document_count is calculated dynamically by the API on each request
-        # No need to manually increment it
+        # Note: Document and question counts removed per user request
         
         return {
             "success": True,
@@ -446,7 +400,7 @@ async def ask_question(q: Question):
                     confidence=result.get("confidence", 0)
                 )
                 
-                # Note: question_count is calculated dynamically by the API on each request
+                # Note: Document and question counts removed per user request
                 # No need to manually increment it
             
             # Set success status
@@ -548,7 +502,7 @@ async def delete_document(doc_id: str):
             if file_path.exists():
                 file_path.unlink()
         
-        # Note: document_count is calculated dynamically by the API on each request
+        # Note: Document and question counts removed per user request
         # No need to manually decrement it
         
         return {

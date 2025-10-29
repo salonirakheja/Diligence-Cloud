@@ -239,12 +239,6 @@ class SimpleVectorStore:
         self.qa_history[project_id].append(qa_entry)
         self._save_qa_history()
     
-    def get_qa_count(self, project_id: str) -> int:
-        """Get the count of Q&A pairs for a project"""
-        if project_id in self.qa_history:
-            return len(self.qa_history[project_id])
-        return 0
-    
     def list_qa(self, project_id: str) -> List[Dict]:
         """List all Q&A pairs for a project"""
         if project_id in self.qa_history:
