@@ -1,0 +1,52 @@
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+docs/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+
+# Data & Uploads (will be on persistent disk)
+backend/uploads/
+data/vector_db/
+
+# Logs
+*.log
+logs/
+
+# Evaluation
+eval_dataset.py
+run_evals.py
+eval_results.json
+eval_run.log
+generated_data/
+
+# Scripts
+generate_diligence_data.py
+import_generated_data.py
+fix_duplicate_project.py
+
+# Test files
+test_page.html
+*.json.bak
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
