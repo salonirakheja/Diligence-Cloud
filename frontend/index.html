@@ -1695,7 +1695,10 @@
         }
         
         function selectProject(projectId, clearSubfolder = true) {
+            console.log('selectProject called with projectId:', projectId);
             currentProjectId = projectId;
+            console.log('currentProjectId set to:', currentProjectId);
+            
             if (clearSubfolder) {
                 currentSubfolderId = null;
             }
@@ -2150,6 +2153,8 @@
             const question = input.value.trim();
             if (!question) return;
             
+            console.log('ask function - currentProjectId:', currentProjectId);
+            
             if (!currentProjectId) {
                 alert('Please select a project first');
                 return;
@@ -2333,10 +2338,13 @@
         
         async function loadQAHistory() {
             try {
+                console.log('loadQAHistory called - currentProjectId:', currentProjectId);
                 if (!currentProjectId) return;
                 
                 const r = await fetch(`${API}/api/qa?project_id=${currentProjectId}`);
                 const data = await r.json();
+                
+                console.log('Q&A data loaded:', data);
                 
                 if (data.success && data.qa_list && data.qa_list.length > 0) {
                     // Clear existing Q&A and add saved ones
