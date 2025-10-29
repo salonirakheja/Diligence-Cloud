@@ -14,12 +14,19 @@
 4. Connect your GitHub repository: `salonirakheja/Diligence-Cloud`
 
 ### Step 2: Configure Service Settings
-Render should auto-detect the configuration from `render.yaml`:
+**⚠️ CRITICAL: Manually set these in the Render dashboard!**
+
+Even though `render.yaml` exists, you need to manually configure these settings:
+
 - **Service Name**: diligence-cloud
 - **Region**: Choose closest to you
 - **Branch**: main
-- **Build Command**: `cd backend && pip install -r requirements.txt`
-- **Start Command**: `cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT --workers 1`
+- **Root Directory**: (leave blank)
+- **Runtime**: Python 3
+- **Build Command**: `pip install -r backend/requirements.txt`
+- **Start Command**: `cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT`
+
+**OR** delete the existing service and let Render auto-detect from `render.yaml` on a fresh deployment.
 
 ### Step 3: Add Environment Variables
 In the Render dashboard → Environment section, add:
@@ -72,6 +79,17 @@ Render free tier services sleep after 15 minutes of inactivity. The first reques
 Manage via Render dashboard → Settings → Environment Variables. Changes require a redeploy.
 
 ## 🐛 Troubleshooting
+
+### Build Command Not Working / Requirements.txt Not Found
+**Problem**: Error `Could not open requirements file: [Errno 2] No such file or directory: 'requirements.txt'`
+
+**Solution**: Update the Build Command in Render dashboard:
+1. Go to your service in Render dashboard
+2. Click **"Settings"** tab
+3. Scroll to **"Build Command"**
+4. Change it to: `pip install -r backend/requirements.txt`
+5. Click **"Save Changes"**
+6. Go to **"Manual Deploy"** tab → **"Deploy latest commit"**
 
 ### Build Fails
 - Check "Logs" tab for error messages
