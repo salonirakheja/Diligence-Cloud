@@ -1,4 +1,4 @@
-"Í""
+"""
 Autonomous Diligence Cloud - Main FastAPI Application
 Handles document upload, processing, and Q&A functionality
 """
