@@ -387,7 +387,6 @@
         
         #content-qa table {
             width: 100%;
-            min-width: 1200px;
             border-collapse: collapse;
             background: white;
         }
@@ -400,7 +399,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            table-layout: fixed;
+            table-layout: auto;
         }
         
         th {
@@ -1252,9 +1251,6 @@
             
             columns.filter(col => col.visible).forEach(col => {
                 const th = document.createElement('th');
-                th.style.width = col.width + 'px';
-                th.style.minWidth = col.width + 'px';
-                th.style.maxWidth = col.width + 'px';
                 th.innerHTML = `
                     <div style="display: flex; align-items: center;">
                         <input type="text" 
@@ -1403,41 +1399,41 @@
         }
         
         function updateTableWidth() {
-            // Calculate total width of all visible columns
+            // Make table 100% width to fill available space
+            const table = document.getElementById('qaTable');
+            if (table) {
+                table.style.width = '100%';
+            }
+            
+            // Calculate total width for percentage calculation
             const totalWidth = columns
                 .filter(col => col.visible)
                 .reduce((sum, col) => sum + col.width, 0);
             
-            // Update table width
-            const table = document.getElementById('qaTable');
-            if (table) {
-                table.style.width = totalWidth + 'px';
-            }
-            
             // Update header column widths
             const header = document.getElementById('tableHeader');
-            if (header) {
+            if (header && totalWidth > 0) {
                 const ths = header.querySelectorAll('th');
                 const visibleColumns = columns.filter(col => col.visible);
                 ths.forEach((th, index) => {
                     if (visibleColumns[index]) {
-                        th.style.width = visibleColumns[index].width + 'px';
+                        const percentage = (visibleColumns[index].width / totalWidth) * 100;
+                        th.style.width = percentage + '%';
                     }
                 });
             }
             
             // Update body column widths
             const tbody = document.getElementById('tbody');
-            if (tbody) {
+            if (tbody && totalWidth > 0) {
                 const rows = tbody.querySelectorAll('tr');
+                const visibleColumns = columns.filter(col => col.visible);
                 rows.forEach(row => {
                     const cells = row.querySelectorAll('td');
-                    const visibleColumns = columns.filter(col => col.visible);
                     cells.forEach((cell, index) => {
                         if (visibleColumns[index]) {
-                            cell.style.width = visibleColumns[index].width + 'px';
-                            cell.style.minWidth = visibleColumns[index].width + 'px';
-                            cell.style.maxWidth = visibleColumns[index].width + 'px';
+                            const percentage = (visibleColumns[index].width / totalWidth) * 100;
+                            cell.style.width = percentage + '%';
                         }
                     });
                 });
@@ -2101,11 +2097,6 @@
             // Build row with visible columns
             columns.filter(col => col.visible).forEach(col => {
                 const td = document.createElement('td');
-                
-                // Set fixed width for cell
-                td.style.width = col.width + 'px';
-                td.style.minWidth = col.width + 'px';
-                td.style.maxWidth = col.width + 'px';
                 
                 if (col.id === 'question') {
                     td.innerHTML = `
