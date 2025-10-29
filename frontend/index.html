@@ -1061,14 +1061,7 @@
             </div>
         </div>
         <div class="header-right">
-            <div class="stat-badge">
-                <div class="stat-number" id="docCount">0</div>
-                <div class="stat-label">Documents</div>
-            </div>
-            <div class="stat-badge">
-                <div class="stat-number" id="qCount">0</div>
-                <div class="stat-label">Questions</div>
-            </div>
+            <!-- Global counts removed - each project shows its own counts -->
         </div>
     </div>
     
@@ -1794,19 +1787,8 @@
         }
         
         async function updateProjectStats() {
-            if (!currentProjectId) return;
-            
-            try {
-                const r = await fetch(`${API}/api/projects/${currentProjectId}`);
-                const data = await r.json();
-                
-                if (data.project) {
-                    document.getElementById('docCount').textContent = data.project.document_count || 0;
-                    document.getElementById('qCount').textContent = data.project.question_count || 0;
-                }
-            } catch (e) {
-                console.error('Failed to update stats:', e);
-            }
+            // Global header counts removed - each project shows its own counts
+            // This function is kept for compatibility but does nothing
         }
         
         // Edit Project
