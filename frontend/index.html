@@ -1426,7 +1426,7 @@
                     if (visibleColumns[index]) {
                         const percentage = (visibleColumns[index].width / totalWidth) * 100;
                         th.style.width = percentage + '%';
-                        th.style.minWidth = visibleColumns[index].width + 'px';
+                        th.style.minWidth = '0';
                     }
                 });
             }
@@ -1441,7 +1441,7 @@
                         if (visibleColumns[index]) {
                             const percentage = (visibleColumns[index].width / totalWidth) * 100;
                             cell.style.width = percentage + '%';
-                            cell.style.minWidth = visibleColumns[index].width + 'px';
+                            cell.style.minWidth = '0';
                         }
                     });
                 });
