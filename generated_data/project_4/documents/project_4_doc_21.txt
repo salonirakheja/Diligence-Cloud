@@ -1,0 +1,30 @@
+
+OPERATIONAL DUE DILIGENCE REPORT
+
+Company: HealthTech Innovations
+Assessment Date: October 2025
+
+BUSINESS MODEL:
+SaaS-based platform with subscription pricing model. Mix of self-service and enterprise sales.
+
+CUSTOMER BASE:
+- Total customers: 867
+- Customer segments: SMB (60%), Mid-Market (30%), Enterprise (10%)
+- Retention rate: 90%
+
+TECHNOLOGY INFRASTRUCTURE:
+- Platform: React/Node.js
+- Hosting: Azure
+- Uptime: 99.74%
+- Security: SOC 2 Type II certified
+
+KEY METRICS:
+- Monthly Recurring Revenue: $14.7M
+- Average Contract Value: $73K
+- Customer Acquisition Cost: $1150
+
+TEAM:
+- Total employees: 423
+- Engineering: 51%
+- Sales/Marketing: 33%
+- G&A: 13%

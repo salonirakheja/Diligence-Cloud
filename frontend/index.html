@@ -1,0 +1,2139 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Diligence Cloud</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f7fa; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        
+        /* Header */
+        .header {
+            background: white;
+            padding: 16px 40px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .logo {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
+        }
+        
+        .brand {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .brand-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #111827;
+            margin: 0;
+        }
+        
+        .brand-tagline {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin: 0;
+        }
+        
+        .header-right {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+        
+        .stat-badge {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 16px;
+            background: #f9fafb;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+            line-height: 1;
+        }
+        
+        .stat-label {
+            font-size: 0.688rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 2px;
+        }
+        
+        /* Main Container with Sidebar */
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        /* Left Sidebar */
+        .sidebar {
+            width: 280px;
+            background: white;
+            border-right: 1px solid #e5e7eb;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+        
+        .sidebar-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .sidebar-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .btn-new-project {
+            padding: 4px 10px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .btn-new-project:hover {
+            background: #5568d3;
+        }
+        
+        .project-tree {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px 0;
+        }
+        
+        .project-item {
+            padding: 8px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background 0.2s;
+            position: relative;
+        }
+        
+        .project-item:hover {
+            background: #f9fafb;
+        }
+        
+        .project-item.active {
+            background: #eff6ff;
+            border-left: 3px solid #667eea;
+        }
+        
+        .project-icon {
+            width: 18px;
+            height: 18px;
+            color: #9ca3af;
+            flex-shrink: 0;
+        }
+        
+        .project-name {
+            font-size: 0.875rem;
+            color: #374151;
+            flex: 1;
+            cursor: pointer;
+        }
+        
+        .project-name:hover {
+            background: #f9fafb;
+            border-radius: 3px;
+        }
+        
+        .project-name-input {
+            width: 100%;
+            padding: 2px 4px;
+            border: 2px solid #667eea;
+            border-radius: 3px;
+            font-size: 0.875rem;
+            font-family: inherit;
+            color: #374151;
+            background: white;
+            outline: none;
+        }
+        
+        .expand-icon {
+            width: 14px;
+            height: 14px;
+            color: #9ca3af;
+            transition: transform 0.2s;
+            flex-shrink: 0;
+        }
+        
+        .expand-icon.expanded {
+            transform: rotate(90deg);
+        }
+        
+        .add-subfolder-btn,
+        .edit-project-btn {
+            opacity: 0;
+            background: transparent;
+            border: none;
+            color: #667eea;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .add-subfolder-btn {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .edit-project-btn {
+            margin-left: 4px;
+        }
+        
+        .project-item:hover .add-subfolder-btn,
+        .project-item:hover .edit-project-btn {
+            opacity: 1;
+        }
+        
+        .add-subfolder-btn:hover,
+        .edit-project-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .subfolder-item {
+            padding: 8px 12px 8px 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.875rem;
+            color: #4b5563;
+            transition: background 0.2s;
+        }
+        
+        .subfolder-item:hover {
+            background: #f9fafb;
+        }
+        
+        .subfolder-item.active {
+            background: #eff6ff;
+            color: #2563eb;
+            border-left: 3px solid #2563eb;
+        }
+        
+        .subfolder-icon {
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        
+        .sub-items {
+            display: none;
+            padding-left: 28px;
+        }
+        
+        .sub-items.visible {
+            display: block;
+        }
+        
+        .sub-item {
+            padding: 6px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background 0.2s;
+            position: relative;
+        }
+        
+        .sub-item::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: #e5e7eb;
+        }
+        
+        .sub-item:hover {
+            background: #f9fafb;
+        }
+        
+        .sub-icon {
+            width: 16px;
+            height: 16px;
+            color: #9ca3af;
+            flex-shrink: 0;
+        }
+        
+        .sub-name {
+            font-size: 0.813rem;
+            color: #6b7280;
+        }
+        
+        /* Content Area */
+        .content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .tabs {
+            background: white;
+            padding: 0 40px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            gap: 32px;
+            flex-shrink: 0;
+        }
+        
+        .tab {
+            padding: 16px 4px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            color: #6b7280;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .tab:hover {
+            color: #111827;
+        }
+        
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        
+        .content {
+            display: none;
+            overflow-x: auto;
+            overflow-y: auto;
+            flex: 1;
+        }
+        
+        .content.active {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Q&A Content - Full height table */
+        #content-qa {
+            padding: 0;
+        }
+        
+        #content-qa table {
+            width: 100%;
+            min-width: 1200px;
+            border-collapse: collapse;
+            background: white;
+        }
+        
+        /* Upload Content - Regular padding */
+        #content-upload {
+            padding: 30px 40px;
+        }
+        
+        table {
+            width: auto;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        
+        th {
+            background: #f9f9f9;
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            white-space: nowrap;
+            border-bottom: 2px solid #e5e7eb;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            position: relative;
+            user-select: none;
+        }
+        
+        .column-resizer {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 5px;
+            cursor: col-resize;
+            user-select: none;
+            background: transparent;
+            z-index: 11;
+        }
+        
+        .column-resizer:hover {
+            background: #667eea;
+        }
+        
+        .column-resizer.resizing {
+            background: #667eea;
+        }
+        
+        .btn-add-column {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            margin-left: 12px;
+        }
+        
+        .btn-add-column:hover {
+            background: #5568d3;
+        }
+        
+        .column-menu {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .column-dropdown {
+            display: none;
+            position: absolute;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 8px;
+            z-index: 1000;
+            min-width: 200px;
+            top: 100%;
+            right: 0;
+            margin-top: 4px;
+        }
+        
+        .column-dropdown.show {
+            display: block;
+        }
+        
+        .column-option {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 0.813rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .column-option:hover {
+            background: #f9fafb;
+        }
+        
+        .column-option input[type="checkbox"] {
+            cursor: pointer;
+        }
+        
+        .add-custom-column {
+            border-top: 1px solid #e5e7eb;
+            margin-top: 8px;
+            padding-top: 8px;
+        }
+        
+        .add-custom-column input {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 0.813rem;
+            margin-bottom: 6px;
+        }
+        
+        .add-custom-column button {
+            width: 100%;
+            padding: 6px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+        
+        .custom-cell-input {
+            width: 100%;
+            border: 1px solid #e5e7eb;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.813rem;
+            font-family: inherit;
+        }
+        
+        .custom-cell-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        td {
+            padding: 16px;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: top;
+            background: white;
+        }
+        
+        tbody tr:hover td {
+            background: #fafbfc;
+        }
+        
+        .answer-text {
+            line-height: 1.7;
+            color: #374151;
+            font-size: 0.875rem;
+            white-space: pre-wrap;
+        }
+        
+        .answer-editable {
+            width: 100%;
+            min-height: 60px;
+            padding: 8px;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            font-family: Arial, sans-serif;
+            font-size: 0.875rem;
+            line-height: 1.7;
+            resize: vertical;
+            background: white;
+        }
+        
+        .answer-editable:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .answer-display {
+            position: relative;
+        }
+        
+        .edit-answer-btn {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 11px;
+            color: #6b7280;
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.2s;
+        }
+        
+        .answer-display:hover .edit-answer-btn {
+            opacity: 1;
+        }
+        
+        .save-answer-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 11px;
+            cursor: pointer;
+            margin-top: 4px;
+        }
+        
+        .cancel-answer-btn {
+            background: #6b7280;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 11px;
+            cursor: pointer;
+            margin-top: 4px;
+            margin-left: 4px;
+        }
+        
+        .source-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .source-item {
+            font-size: 0.813rem;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .source-link {
+            color: #667eea;
+            text-decoration: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 2px 4px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        
+        .source-link:hover {
+            background: #eff6ff;
+            text-decoration: underline;
+        }
+        
+        .empty-text {
+            color: #d1d5db;
+            font-style: italic;
+        }
+        
+        input.q {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        input.q:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .followup-input {
+            margin-left: 30px;
+            width: calc(100% - 30px) !important;
+            border-left: 3px solid #667eea;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .badge-ready { background: #fef3c7; color: #92400e; }
+        .badge-processing { background: #dbeafe; color: #1e40af; }
+        .badge-done { background: #d1fae5; color: #065f46; }
+        
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .btn-followup {
+            background: none;
+            color: #667eea;
+            padding: 4px 8px;
+            font-size: 18px;
+            opacity: 0;
+        }
+        
+        tr:hover .btn-followup {
+            opacity: 1;
+        }
+        
+        .btn-toggle {
+            background: #eff6ff;
+            color: #667eea;
+            padding: 3px 8px;
+            font-size: 11px;
+            margin-left: 8px;
+        }
+        
+        .followup-row {
+            background: #fafbfc;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .upload-box {
+            border: 2px dashed #ddd;
+            padding: 60px;
+            text-align: center;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 20px 0;
+        }
+        
+        .upload-box:hover {
+            border-color: #667eea;
+            background: #fafbfc;
+        }
+        
+        .doc-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            padding: 16px;
+            margin: 12px 0;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        
+        .doc-card:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transform: translateY(-1px);
+        }
+        
+        .doc-name {
+            font-size: 0.938rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .doc-meta {
+            font-size: 0.813rem;
+            color: #6b7280;
+            line-height: 1.6;
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 32px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .modal-header {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 24px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 0.875rem;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .form-textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        .form-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
+        
+        .btn-secondary {
+            padding: 10px 20px;
+            background: #6b7280;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .btn-primary {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <div class="logo">D</div>
+            <div class="brand">
+                <h1 class="brand-name">Diligence Cloud</h1>
+                <p class="brand-tagline">AI-Powered Document Intelligence Platform</p>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="stat-badge">
+                <div class="stat-number" id="docCount">0</div>
+                <div class="stat-label">Documents</div>
+            </div>
+            <div class="stat-badge">
+                <div class="stat-number" id="qCount">0</div>
+                <div class="stat-label">Questions</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Container with Sidebar -->
+    <div class="main-container">
+        <!-- Left Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-title">Projects</div>
+                <button class="btn-new-project" onclick="showNewProjectModal()">+ New</button>
+            </div>
+            <div class="project-tree" id="projectTree">
+                <!-- Projects will be loaded here -->
+            </div>
+        </div>
+        
+        <!-- Content Area -->
+        <div class="content-area">
+            <div class="tabs">
+                <div class="tab active" id="tab-qa">Q&A Interface</div>
+                <div class="tab" id="tab-upload">Upload Documents</div>
+            </div>
+            
+            <div class="content active" id="content-qa">
+                <div style="padding: 20px 40px; background: white; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h2 style="font-size: 1.25rem; color: #111827; margin: 0;">Questions & Answers</h2>
+                        <p style="color: #6b7280; font-size: 0.813rem; margin: 4px 0 0 0;">Click column names to edit • Drag edges to resize • Use ⚙️ menu to manage columns</p>
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <div class="column-menu">
+                            <button class="btn-add-column" onclick="toggleColumnMenu()">⚙️ Columns</button>
+                            <div class="column-dropdown" id="columnDropdown">
+                                <div style="font-weight: 600; font-size: 0.75rem; color: #6b7280; margin-bottom: 8px; text-transform: uppercase;">Show/Hide Columns</div>
+                                <div id="columnOptions"></div>
+                                <div class="add-custom-column">
+                                    <input type="text" id="customColumnName" placeholder="Custom column name..." onkeypress="if(event.key=='Enter') addCustomColumn()">
+                                    <button onclick="addCustomColumn()">+ Add Custom Column</button>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="exportExcel()" 
+                                onmouseover="this.style.background='#059669'" 
+                                onmouseout="this.style.background='#10b981'"
+                                style="background: #10b981; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 0.813rem; transition: all 0.2s;">
+                            📊 Export
+                        </button>
+                    </div>
+                </div>
+                <div style="overflow-x: auto; overflow-y: auto; flex: 1; width: 100%;">
+                    <table id="qaTable" style="width: auto;">
+                        <thead>
+                            <tr id="tableHeader"></tr>
+                        </thead>
+                        <tbody id="tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="content" id="content-upload">
+                <div style="margin-bottom: 24px;">
+                    <h2 style="font-size: 1.5rem; color: #111827; margin-bottom: 6px;">Upload Documents</h2>
+                    <p style="color: #6b7280; font-size: 0.875rem;">Upload PDF, Excel, Word, or Text files to analyze with AI</p>
+                </div>
+                <div class="upload-box" id="uploadBox">
+                    <div style="font-size: 48px; margin-bottom: 15px;">📄</div>
+                    <h3 style="color: #111827; margin-bottom: 8px;">Click to upload or drag & drop files</h3>
+                    <p style="color: #9ca3af; font-size: 0.875rem;">Supports PDF, Excel (.xlsx, .csv), Word (.docx), and Text (.txt) files</p>
+                    <input type="file" id="fileInput" multiple style="display: none;" accept=".pdf,.xlsx,.xls,.csv,.docx,.txt">
+                </div>
+                <h3 style="margin-top: 32px; font-size: 1.125rem; color: #111827;">Your Documents</h3>
+                <div id="docList"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- New Project Modal -->
+    <div class="modal" id="newProjectModal">
+        <div class="modal-content">
+            <div class="modal-header">Create New Project</div>
+            <div class="form-group">
+                <label class="form-label">Project Name</label>
+                <input type="text" class="form-input" id="projectName" placeholder="e.g., Acme Corp Due Diligence">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Description (Optional)</label>
+                <textarea class="form-textarea" id="projectDescription" placeholder="Brief description of this project..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-secondary" onclick="closeNewProjectModal()">Cancel</button>
+                <button class="btn-primary" onclick="createProject()">Create Project</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Subfolder Modal -->
+    <div class="modal" id="addSubfolderModal">
+        <div class="modal-content">
+            <div class="modal-header">Add Subfolder</div>
+            <div class="form-group">
+                <label class="form-label">Subfolder Name</label>
+                <input type="text" class="form-input" id="subfolderName" placeholder="e.g., Financial Documents, Legal Files, etc.">
+            </div>
+            <div class="modal-actions">
+                <button class="btn-secondary" onclick="closeAddSubfolderModal()">Cancel</button>
+                <button class="btn-primary" onclick="createSubfolder()">Add Subfolder</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Edit Project Modal -->
+    <div class="modal" id="editProjectModal">
+        <div class="modal-content">
+            <div class="modal-header">Edit Project</div>
+            <div class="form-group">
+                <label class="form-label">Project Name</label>
+                <input type="text" class="form-input" id="editProjectName" placeholder="Project name">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Description (Optional)</label>
+                <textarea class="form-textarea" id="editProjectDescription" placeholder="Brief description of this project..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-secondary" onclick="closeEditProjectModal()">Cancel</button>
+                <button class="btn-primary" onclick="updateProject()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API = 'http://localhost:8002';
+        let qs = [];
+        let currentProjectId = null;
+        let currentSubfolderId = null;
+        let editingProjectId = null;
+        let inlineEditingProjectId = null;
+        let projects = [];
+        let subfolders = {}; // Store subfolders per project: { projectId: [subfolders] }
+        
+        // Column management
+        let columns = [
+            { id: 'question', name: 'Question', visible: true, width: 300, default: false },
+            { id: 'answer', name: 'Answer', visible: true, width: 400, default: false },
+            { id: 'source', name: 'Source', visible: true, width: 180, default: false },
+            { id: 'status', name: 'Status', visible: true, width: 120, default: false },
+            { id: 'date', name: 'Date', visible: true, width: 120, default: false }
+        ];
+        
+        // Column resizing
+        let isResizing = false;
+        let currentColumn = null;
+        let startX = 0;
+        let startWidth = 0;
+        
+        // Initialize column management
+        function initializeColumns() {
+            renderTableHeader();
+            renderColumnOptions();
+        }
+        
+        function renderTableHeader() {
+            const header = document.getElementById('tableHeader');
+            header.innerHTML = '';
+            
+            columns.filter(col => col.visible).forEach(col => {
+                const th = document.createElement('th');
+                th.style.width = col.width + 'px';
+                th.style.minWidth = col.width + 'px';
+                th.style.maxWidth = col.width + 'px';
+                th.innerHTML = `
+                    <div style="display: flex; align-items: center;">
+                        <input type="text" 
+                               class="column-name-input" 
+                               value="${col.name}" 
+                               data-column="${col.id}"
+                               onchange="renameColumn('${col.id}', this.value)"
+                               onclick="event.stopPropagation()"
+                               style="flex: 1; background: transparent; border: 1px solid transparent; padding: 2px 4px; border-radius: 3px; font-size: 11px; font-weight: 600; color: #666; text-transform: uppercase;">
+                    </div>
+                    <div class="column-resizer" data-column="${col.id}"></div>
+                `;
+                header.appendChild(th);
+            });
+            
+            // Add resize listeners
+            document.querySelectorAll('.column-resizer').forEach(resizer => {
+                resizer.addEventListener('mousedown', startResize);
+            });
+            
+            // Add hover effect for column name inputs
+            document.querySelectorAll('.column-name-input').forEach(input => {
+                input.addEventListener('mouseenter', function() {
+                    this.style.borderColor = '#d1d5db';
+                    this.style.background = 'white';
+                });
+                input.addEventListener('mouseleave', function() {
+                    if (document.activeElement !== this) {
+                        this.style.borderColor = 'transparent';
+                        this.style.background = 'transparent';
+                    }
+                });
+                input.addEventListener('focus', function() {
+                    this.style.borderColor = '#667eea';
+                    this.style.background = 'white';
+                });
+                input.addEventListener('blur', function() {
+                    this.style.borderColor = 'transparent';
+                    this.style.background = 'transparent';
+                });
+            });
+            
+            // Update table width after rendering header
+            updateTableWidth();
+        }
+        
+        function renderColumnOptions() {
+            const container = document.getElementById('columnOptions');
+            container.innerHTML = '';
+            
+            columns.forEach(col => {
+                const option = document.createElement('div');
+                option.className = 'column-option';
+                option.innerHTML = `
+                    <input type="checkbox" 
+                           id="col-${col.id}" 
+                           ${col.visible ? 'checked' : ''} 
+                           onchange="toggleColumn('${col.id}')">
+                    <label for="col-${col.id}" style="cursor: pointer; flex: 1;">
+                        ${col.name}
+                    </label>
+                `;
+                container.appendChild(option);
+            });
+        }
+        
+        function renameColumn(columnId, newName) {
+            const col = columns.find(c => c.id === columnId);
+            if (col && newName.trim()) {
+                col.name = newName.trim();
+                renderColumnOptions();
+            }
+        }
+        
+        function toggleColumnMenu() {
+            const dropdown = document.getElementById('columnDropdown');
+            dropdown.classList.toggle('show');
+        }
+        
+        function toggleColumn(columnId) {
+            const col = columns.find(c => c.id === columnId);
+            if (col) {
+                col.visible = !col.visible;
+                renderTableHeader();
+                renderTable();
+            }
+        }
+        
+        function addCustomColumn() {
+            const input = document.getElementById('customColumnName');
+            const name = input.value.trim();
+            
+            if (!name) {
+                alert('Please enter a column name');
+                return;
+            }
+            
+            const id = 'custom_' + Date.now();
+            columns.push({
+                id: id,
+                name: name,
+                visible: true,
+                width: 150,
+                default: false
+            });
+            
+            input.value = '';
+            renderTableHeader();
+            renderColumnOptions();
+            renderTable();
+        }
+        
+        function removeColumn(columnId) {
+            if (confirm('Remove this column?')) {
+                columns = columns.filter(c => c.id !== columnId);
+                renderTableHeader();
+                renderColumnOptions();
+                renderTable();
+            }
+        }
+        
+        // Column resizing
+        function startResize(e) {
+            e.preventDefault();
+            isResizing = true;
+            currentColumn = e.target.dataset.column;
+            startX = e.pageX;
+            
+            const col = columns.find(c => c.id === currentColumn);
+            startWidth = col.width;
+            
+            e.target.classList.add('resizing');
+            document.addEventListener('mousemove', doResize);
+            document.addEventListener('mouseup', stopResize);
+        }
+        
+        function doResize(e) {
+            if (!isResizing) return;
+            
+            const diff = e.pageX - startX;
+            const col = columns.find(c => c.id === currentColumn);
+            const newWidth = Math.max(80, startWidth + diff);
+            
+            col.width = newWidth;
+            updateTableWidth();
+        }
+        
+        function updateTableWidth() {
+            // Calculate total width of all visible columns
+            const totalWidth = columns
+                .filter(col => col.visible)
+                .reduce((sum, col) => sum + col.width, 0);
+            
+            // Update table width
+            const table = document.getElementById('qaTable');
+            if (table) {
+                table.style.width = totalWidth + 'px';
+            }
+            
+            // Update header column widths
+            const header = document.getElementById('tableHeader');
+            if (header) {
+                const ths = header.querySelectorAll('th');
+                const visibleColumns = columns.filter(col => col.visible);
+                ths.forEach((th, index) => {
+                    if (visibleColumns[index]) {
+                        th.style.width = visibleColumns[index].width + 'px';
+                    }
+                });
+            }
+            
+            // Update body column widths
+            const tbody = document.getElementById('tbody');
+            if (tbody) {
+                const rows = tbody.querySelectorAll('tr');
+                rows.forEach(row => {
+                    const cells = row.querySelectorAll('td');
+                    const visibleColumns = columns.filter(col => col.visible);
+                    cells.forEach((cell, index) => {
+                        if (visibleColumns[index]) {
+                            cell.style.width = visibleColumns[index].width + 'px';
+                            cell.style.minWidth = visibleColumns[index].width + 'px';
+                            cell.style.maxWidth = visibleColumns[index].width + 'px';
+                        }
+                    });
+                });
+            }
+        }
+        
+        function stopResize(e) {
+            if (!isResizing) return;
+            
+            isResizing = false;
+            document.querySelectorAll('.column-resizer').forEach(r => r.classList.remove('resizing'));
+            document.removeEventListener('mousemove', doResize);
+            document.removeEventListener('mouseup', stopResize);
+        }
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            const menu = document.querySelector('.column-menu');
+            const dropdown = document.getElementById('columnDropdown');
+            if (menu && !menu.contains(e.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+        
+        // Render table with current columns
+        function renderTable() {
+            const tbody = document.getElementById('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            
+            rows.forEach(row => {
+                const id = row.dataset.id;
+                const isFollowup = row.classList.contains('followup-row');
+                const parentId = row.dataset.parent;
+                const prefix = isFollowup ? '└─ ' : '';
+                
+                // Get existing data
+                const questionInput = row.querySelector('.q');
+                const questionValue = questionInput ? questionInput.value : '';
+                const answerDisplay = row.querySelector('.answer-display');
+                const answerHTML = answerDisplay ? answerDisplay.innerHTML : '<span class="empty-text">—</span>';
+                const sourceCell = row.cells[2];
+                const sourceHTML = sourceCell ? sourceCell.innerHTML : '<span class="empty-text">—</span>';
+                const statusCell = row.cells[3];
+                const statusHTML = statusCell ? statusCell.innerHTML : '<span class="badge badge-ready">Ready</span>';
+                const dateCell = row.cells[4];
+                const dateHTML = dateCell ? dateCell.innerHTML : new Date().toLocaleDateString();
+                
+                // Store custom column data
+                const customData = {};
+                columns.forEach((col, idx) => {
+                    if (!col.default && row.cells[idx]) {
+                        customData[col.id] = row.cells[idx].innerHTML;
+                    }
+                });
+                
+                // Rebuild row with visible columns
+                row.innerHTML = '';
+                columns.filter(col => col.visible).forEach(col => {
+                    const td = document.createElement('td');
+                    
+                    if (col.id === 'question') {
+                        td.innerHTML = `
+                            <input class="q ${isFollowup ? 'followup-input' : ''}" id="q${id}" 
+                                   value="${questionValue}"
+                                   placeholder="${prefix}Type and press Enter"
+                                   onkeypress="if(event.key=='Enter') ask(${id})">
+                            <button class="btn-followup" onclick="addQ(${id})">↪</button>
+                            <span id="thread${id}"></span>
+                        `;
+                    } else if (col.id === 'answer') {
+                        td.innerHTML = `
+                            <div class="answer-display" id="answerDisplay${id}">
+                                ${answerHTML}
+                            </div>
+                            <div class="answer-edit" id="answerEdit${id}" style="display: none;">
+                                <textarea class="answer-editable" id="answerText${id}" placeholder="Enter manual answer..."></textarea>
+                                <div>
+                                    <button class="save-answer-btn" onclick="saveAnswer(${id})">Save</button>
+                                    <button class="cancel-answer-btn" onclick="cancelEditAnswer(${id})">Cancel</button>
+                                </div>
+                            </div>
+                        `;
+                    } else if (col.id === 'source') {
+                        td.innerHTML = sourceHTML;
+                    } else if (col.id === 'status') {
+                        td.innerHTML = statusHTML;
+                    } else if (col.id === 'date') {
+                        td.style.fontSize = '0.813rem';
+                        td.style.color = '#6b7280';
+                        td.innerHTML = dateHTML;
+                    } else {
+                        // Custom column
+                        td.innerHTML = customData[col.id] || '<input type="text" class="custom-cell-input" placeholder="—" style="width: 100%; border: 1px solid #e5e7eb; padding: 4px 8px; border-radius: 4px; font-size: 0.813rem;">';
+                    }
+                    
+                    row.appendChild(td);
+                });
+            });
+        }
+        
+        // Tabs
+        document.getElementById('tab-qa').onclick = () => showTab('qa');
+        document.getElementById('tab-upload').onclick = () => showTab('upload');
+        
+        function showTab(name) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+            document.getElementById('tab-' + name).classList.add('active');
+            document.getElementById('content-' + name).classList.add('active');
+            if (name === 'upload') loadDocs();
+        }
+        
+        // Project Management
+        async function loadProjects() {
+            try {
+                const r = await fetch(`${API}/api/projects`);
+                const data = await r.json();
+                projects = data.projects || [];
+                
+                const tree = document.getElementById('projectTree');
+                
+                if (projects.length > 0) {
+                    tree.innerHTML = projects.map(p => {
+                        const isActive = p.id === currentProjectId ? 'active' : '';
+                        return `
+                            <div class="project-item ${isActive}" id="project-${p.id}">
+                                <span class="expand-icon" onclick="event.stopPropagation(); toggleProject('${p.id}')">▶</span>
+                                <span class="project-icon" onclick="selectProject('${p.id}')">📁</span>
+                                <span class="project-name" onclick="selectProject('${p.id}')" ondblclick="event.stopPropagation(); enableInlineEdit('${p.id}', '${p.name.replace(/'/g, "\\'")}')">${p.name}</span>
+                                <button class="edit-project-btn" onclick="event.stopPropagation(); showEditProjectModal('${p.id}', '${p.name.replace(/'/g, "\\'")}'))" title="Edit project">✏️</button>
+                                <button class="add-subfolder-btn" onclick="event.stopPropagation(); showAddSubfolderModal('${p.id}')" title="Add subfolder">+</button>
+                            </div>
+                            <div class="sub-items" id="sub-${p.id}">
+                                <!-- Sub-items will be loaded here -->
+                            </div>
+                        `;
+                    }).join('');
+                    
+                    // Set current project to first one if not set
+                    if (!currentProjectId && projects.length > 0) {
+                        currentProjectId = projects[0].id;
+                        selectProject(currentProjectId);
+                    }
+                    
+                    // Load documents as sub-items for active project
+                    if (currentProjectId) {
+                        loadProjectDocuments(currentProjectId);
+                    }
+                } else {
+                    tree.innerHTML = '<div style="padding: 20px; text-align: center; color: #9ca3af; font-size: 0.875rem;">No projects yet.<br>Click "+ New" to create one.</div>';
+                }
+            } catch (e) {
+                console.error('Failed to load projects:', e);
+            }
+        }
+        
+        async function loadProjectDocuments(projectId) {
+            try {
+                const r = await fetch(`${API}/api/documents?project_id=${projectId}`);
+                const data = await r.json();
+                const documents = data.documents || [];
+                
+                const subContainer = document.getElementById(`sub-${projectId}`);
+                if (subContainer) {
+                    if (documents.length > 0) {
+                        subContainer.innerHTML = documents.map(doc => `
+                            <div class="sub-item">
+                                <span class="sub-icon">📄</span>
+                                <span class="sub-name">${doc.filename}</span>
+                            </div>
+                        `).join('');
+                        subContainer.classList.add('visible');
+                    } else {
+                        subContainer.innerHTML = '';
+                        subContainer.classList.remove('visible');
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to load documents:', e);
+            }
+        }
+        
+        function selectProject(projectId, clearSubfolder = true) {
+            currentProjectId = projectId;
+            if (clearSubfolder) {
+                currentSubfolderId = null;
+            }
+            
+            // Update active state
+            document.querySelectorAll('.project-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            const selected = document.getElementById(`project-${projectId}`);
+            if (selected) {
+                selected.classList.add('active');
+            }
+            
+            // Reload documents and questions for new project
+            loadProjectDocuments(projectId);
+            loadDocs();
+            updateProjectStats();
+            
+            // Clear and reload Q&A table
+            document.getElementById('tbody').innerHTML = '';
+            qs = [];
+            addQ();
+        }
+        
+        function showNewProjectModal() {
+            document.getElementById('newProjectModal').classList.add('show');
+            document.getElementById('projectName').value = '';
+            document.getElementById('projectDescription').value = '';
+        }
+        
+        function closeNewProjectModal() {
+            document.getElementById('newProjectModal').classList.remove('show');
+        }
+        
+        async function createProject() {
+            const name = document.getElementById('projectName').value.trim();
+            const description = document.getElementById('projectDescription').value.trim();
+            
+            if (!name) {
+                alert('Please enter a project name');
+                return;
+            }
+            
+            try {
+                const r = await fetch(`${API}/api/projects`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ name, description })
+                });
+                
+                if (r.ok) {
+                    const data = await r.json();
+                    alert('✓ Project created: ' + name);
+                    closeNewProjectModal();
+                    
+                    // Reload projects and switch to new one
+                    await loadProjects();
+                    selectProject(data.project.id);
+                } else {
+                    alert('Failed to create project');
+                }
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
+        }
+        
+        async function updateProjectStats() {
+            if (!currentProjectId) return;
+            
+            try {
+                const r = await fetch(`${API}/api/projects/${currentProjectId}`);
+                const data = await r.json();
+                
+                if (data.project) {
+                    document.getElementById('docCount').textContent = data.project.document_count || 0;
+                    document.getElementById('qCount').textContent = data.project.question_count || 0;
+                }
+            } catch (e) {
+                console.error('Failed to update stats:', e);
+            }
+        }
+        
+        // Edit Project
+        async function showEditProjectModal(projectId, projectName) {
+            editingProjectId = projectId;
+            
+            try {
+                // Fetch full project details
+                const r = await fetch(`${API}/api/projects/${projectId}`);
+                const data = await r.json();
+                
+                if (data.project) {
+                    document.getElementById('editProjectName').value = data.project.name || '';
+                    document.getElementById('editProjectDescription').value = data.project.description || '';
+                    document.getElementById('editProjectModal').classList.add('show');
+                    document.getElementById('editProjectName').focus();
+                }
+            } catch (e) {
+                console.error('Failed to load project details:', e);
+                // Fallback to just the name
+                document.getElementById('editProjectName').value = projectName;
+                document.getElementById('editProjectDescription').value = '';
+                document.getElementById('editProjectModal').classList.add('show');
+                document.getElementById('editProjectName').focus();
+            }
+        }
+        
+        function closeEditProjectModal() {
+            document.getElementById('editProjectModal').classList.remove('show');
+            editingProjectId = null;
+        }
+        
+        async function updateProject() {
+            const name = document.getElementById('editProjectName').value.trim();
+            const description = document.getElementById('editProjectDescription').value.trim();
+            
+            if (!name) {
+                alert('Please enter a project name');
+                return;
+            }
+            
+            if (!editingProjectId) {
+                alert('No project selected for editing');
+                return;
+            }
+            
+            try {
+                const r = await fetch(`${API}/api/projects/${editingProjectId}`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ name, description })
+                });
+                
+                if (r.ok) {
+                    alert('✓ Project updated: ' + name);
+                    closeEditProjectModal();
+                    
+                    // Reload projects to show updated name
+                    await loadProjects();
+                    
+                    // If this was the current project, keep it selected
+                    if (currentProjectId === editingProjectId) {
+                        selectProject(editingProjectId);
+                    }
+                } else {
+                    alert('Failed to update project');
+                }
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
+        }
+        
+        // Inline editing functions
+        function enableInlineEdit(projectId, projectName) {
+            if (inlineEditingProjectId) {
+                cancelInlineEdit();
+            }
+            
+            inlineEditingProjectId = projectId;
+            const nameSpan = document.querySelector(`#project-${projectId} .project-name`);
+            
+            if (nameSpan) {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'project-name-input';
+                input.value = projectName;
+                input.id = `inline-edit-${projectId}`;
+                
+                // Replace the span with input
+                nameSpan.innerHTML = '';
+                nameSpan.appendChild(input);
+                
+                // Focus and select all text
+                setTimeout(() => {
+                    input.focus();
+                    input.select();
+                }, 10);
+                
+                // Handle save on Enter key
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        saveInlineEdit(projectId);
+                    } else if (e.key === 'Escape') {
+                        cancelInlineEdit();
+                    }
+                });
+                
+                // Handle save on blur (clicking outside)
+                input.addEventListener('blur', function(e) {
+                    // Delay to allow click on save button
+                    setTimeout(() => {
+                        if (inlineEditingProjectId === projectId) {
+                            saveInlineEdit(projectId);
+                        }
+                    }, 200);
+                });
+            }
+        }
+        
+        async function saveInlineEdit(projectId) {
+            const input = document.getElementById(`inline-edit-${projectId}`);
+            if (!input) return;
+            
+            const newName = input.value.trim();
+            
+            if (!newName) {
+                alert('Project name cannot be empty');
+                return;
+            }
+            
+            const project = projects.find(p => p.id === projectId);
+            if (!project) return;
+            
+            // Don't update if name hasn't changed
+            if (newName === project.name) {
+                cancelInlineEdit();
+                return;
+            }
+            
+            try {
+                const r = await fetch(`${API}/api/projects/${projectId}`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ name: newName })
+                });
+                
+                if (r.ok) {
+                    // Reload projects to show updated name
+                    await loadProjects();
+                    
+                    // If this was the current project, keep it selected
+                    if (currentProjectId === projectId) {
+                        selectProject(projectId);
+                    }
+                } else {
+                    alert('Failed to update project name');
+                }
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
+            
+            inlineEditingProjectId = null;
+        }
+        
+        function cancelInlineEdit() {
+            if (!inlineEditingProjectId) return;
+            
+            inlineEditingProjectId = null;
+            
+            // Reload projects to restore original name
+            loadProjects();
+        }
+        
+        // Subfolder Management
+        function showAddSubfolderModal(projectId) {
+            currentProjectId = projectId;
+            document.getElementById('addSubfolderModal').classList.add('show');
+            document.getElementById('subfolderName').value = '';
+            document.getElementById('subfolderName').focus();
+        }
+        
+        function closeAddSubfolderModal() {
+            document.getElementById('addSubfolderModal').classList.remove('show');
+        }
+        
+        function createSubfolder() {
+            const name = document.getElementById('subfolderName').value.trim();
+            
+            if (!name) {
+                alert('Please enter a subfolder name');
+                return;
+            }
+            
+            if (!currentProjectId) {
+                alert('No project selected');
+                return;
+            }
+            
+            // Initialize subfolders array for this project if it doesn't exist
+            if (!subfolders[currentProjectId]) {
+                subfolders[currentProjectId] = [];
+            }
+            
+            // Create subfolder object
+            const subfolder = {
+                id: 'subfolder_' + Date.now(),
+                name: name,
+                projectId: currentProjectId
+            };
+            
+            // Add to subfolders
+            subfolders[currentProjectId].push(subfolder);
+            
+            // Save to localStorage
+            localStorage.setItem('subfolders', JSON.stringify(subfolders));
+            
+            // Refresh the project tree
+            renderProjectSubfolders(currentProjectId);
+            
+            // Close modal
+            closeAddSubfolderModal();
+            
+            alert('✓ Subfolder created: ' + name);
+        }
+        
+        function toggleProject(projectId) {
+            const expandIcon = document.querySelector(`#project-${projectId} .expand-icon`);
+            const subItems = document.getElementById(`sub-${projectId}`);
+            
+            if (subItems.classList.contains('visible')) {
+                subItems.classList.remove('visible');
+                expandIcon.classList.remove('expanded');
+            } else {
+                subItems.classList.add('visible');
+                expandIcon.classList.add('expanded');
+                renderProjectSubfolders(projectId);
+            }
+        }
+        
+        function renderProjectSubfolders(projectId) {
+            const subItemsContainer = document.getElementById(`sub-${projectId}`);
+            if (!subItemsContainer) return;
+            
+            // Load subfolders from localStorage
+            const storedSubfolders = localStorage.getItem('subfolders');
+            if (storedSubfolders) {
+                subfolders = JSON.parse(storedSubfolders);
+            }
+            
+            const projectSubfolders = subfolders[projectId] || [];
+            
+            if (projectSubfolders.length > 0) {
+                subItemsContainer.innerHTML = projectSubfolders.map(sf => {
+                    const isActive = sf.id === currentSubfolderId ? 'active' : '';
+                    return `
+                        <div class="subfolder-item ${isActive}" onclick="selectSubfolder('${sf.id}', '${projectId}')">
+                            <span class="subfolder-icon">📂</span>
+                            <span>${sf.name}</span>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                subItemsContainer.innerHTML = '<div style="padding: 8px 12px 8px 40px; color: #9ca3af; font-size: 0.813rem;">No subfolders yet</div>';
+            }
+        }
+        
+        function selectSubfolder(subfolderId, projectId) {
+            currentSubfolderId = subfolderId;
+            currentProjectId = projectId;
+            
+            // Update active states
+            document.querySelectorAll('.subfolder-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.closest('.subfolder-item').classList.add('active');
+            
+            // Update project active state
+            selectProject(projectId, false);
+        }
+        
+        // Questions
+        function addQ(parentId) {
+            const tbody = document.getElementById('tbody');
+            const id = Date.now();
+            const isFollowup = parentId != null;
+            
+            let row;
+            if (isFollowup) {
+                let after = document.querySelector(`[data-id="${parentId}"]`);
+                let next = after ? after.nextElementSibling : null;
+                while (next && next.dataset.parent == parentId) {
+                    after = next;
+                    next = next.nextElementSibling;
+                }
+                row = tbody.insertRow(after ? after.rowIndex : -1);
+                row.className = 'followup-row';
+                row.dataset.parent = parentId;
+            } else {
+                row = tbody.insertRow(-1);
+            }
+            
+            row.dataset.id = id;
+            const prefix = isFollowup ? '└─ ' : '';
+            
+            // Build row with visible columns
+            columns.filter(col => col.visible).forEach(col => {
+                const td = document.createElement('td');
+                
+                // Set fixed width for cell
+                td.style.width = col.width + 'px';
+                td.style.minWidth = col.width + 'px';
+                td.style.maxWidth = col.width + 'px';
+                
+                if (col.id === 'question') {
+                    td.innerHTML = `
+                        <input class="q ${isFollowup ? 'followup-input' : ''}" id="q${id}" 
+                               placeholder="${prefix}Type and press Enter"
+                               onkeypress="if(event.key=='Enter') ask(${id})">
+                        <button class="btn-followup" onclick="addQ(${id})">↪</button>
+                        <span id="thread${id}"></span>
+                    `;
+                } else if (col.id === 'answer') {
+                    td.innerHTML = `
+                        <div class="answer-display" id="answerDisplay${id}">
+                            <span class="empty-text">—</span>
+                            <button class="edit-answer-btn" onclick="editAnswer(${id})" title="Edit answer manually">✏️</button>
+                        </div>
+                        <div class="answer-edit" id="answerEdit${id}" style="display: none;">
+                            <textarea class="answer-editable" id="answerText${id}" placeholder="Enter manual answer..."></textarea>
+                            <div>
+                                <button class="save-answer-btn" onclick="saveAnswer(${id})">Save</button>
+                                <button class="cancel-answer-btn" onclick="cancelEditAnswer(${id})">Cancel</button>
+                            </div>
+                        </div>
+                    `;
+                } else if (col.id === 'source') {
+                    td.innerHTML = '<span class="empty-text">—</span>';
+                } else if (col.id === 'status') {
+                    td.innerHTML = '<span class="badge badge-ready">Ready</span>';
+                } else if (col.id === 'date') {
+                    td.style.fontSize = '0.813rem';
+                    td.style.color = '#6b7280';
+                    td.innerHTML = new Date().toLocaleDateString();
+                } else {
+                    // Custom column
+                    td.innerHTML = '<input type="text" class="custom-cell-input" placeholder="—" style="width: 100%; border: 1px solid #e5e7eb; padding: 4px 8px; border-radius: 4px; font-size: 0.813rem;">';
+                }
+                
+                row.appendChild(td);
+            });
+            
+            qs.push({id, parentId, followups: []});
+            document.getElementById('q' + id).focus();
+            updateStats();
+            return id;
+        }
+        
+        async function ask(id) {
+            const input = document.getElementById('q' + id);
+            const question = input.value.trim();
+            if (!question) return;
+            
+            if (!currentProjectId) {
+                alert('Please select a project first');
+                return;
+            }
+            
+            const row = document.querySelector(`[data-id="${id}"]`);
+            if (row && row.cells[3]) {
+                row.cells[3].innerHTML = '<span class="badge badge-processing">Processing...</span>';
+            }
+            
+            const answerDisplay = document.getElementById(`answerDisplay${id}`);
+            if (answerDisplay) {
+                answerDisplay.innerHTML = `
+                    <div class="answer-text" style="color: #9ca3af;">🤔 AI is thinking...</div>
+                    <button class="edit-answer-btn" onclick="editAnswer(${id})" title="Edit answer manually">✏️</button>
+                `;
+            }
+            input.disabled = true;
+            
+            try {
+                const r = await fetch(`${API}/api/ask`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        question,
+                        project_id: currentProjectId
+                    })
+                });
+                const data = await r.json();
+                
+                const answerDisplay = document.getElementById(`answerDisplay${id}`);
+                if (answerDisplay) {
+                    if (data.answer) {
+                        answerDisplay.innerHTML = `
+                            <div class="answer-text">${data.answer}</div>
+                            <button class="edit-answer-btn" onclick="editAnswer(${id})" title="Edit answer manually">✏️</button>
+                        `;
+                    } else {
+                        answerDisplay.innerHTML = `
+                            <div class="answer-text" style="color: #ef4444;">No answer received</div>
+                            <button class="edit-answer-btn" onclick="editAnswer(${id})" title="Edit answer manually">✏️</button>
+                        `;
+                    }
+                }
+                
+                if (data.sources && data.sources.length > 0) {
+                    const uniqueSources = [];
+                    const seen = new Set();
+                    for (const s of data.sources) {
+                        if (!seen.has(s.filename)) {
+                            seen.add(s.filename);
+                            uniqueSources.push(s);
+                        }
+                    }
+                    
+                    const sourceHtml = uniqueSources.map(s => 
+                        `<a href="#" onclick="openSource('${s.filename}'); return false;" class="source-link" title="Click to open document">
+                            📄 ${s.filename}
+                        </a>`
+                    ).join('');
+                    row.cells[2].innerHTML = `<div class="source-list">${sourceHtml}</div>`;
+                } else {
+                    row.cells[2].innerHTML = '<span class="empty-text">No sources</span>';
+                }
+                
+                if (row && row.cells[3]) {
+                    row.cells[3].innerHTML = '<span class="badge badge-done">Done</span>';
+                }
+                if (row && row.cells[4]) {
+                    row.cells[4].innerHTML = `<span style="font-size: 0.813rem; color: #6b7280;">${new Date().toLocaleDateString()}</span>`;
+                }
+                
+                const q = qs.find(x => x.id == id);
+                if (q) {
+                    q.question = question;
+                    q.answer = data.answer;
+                }
+                
+                input.disabled = false;
+                updateThread(id);
+                updateStats();
+                updateProjectStats();
+                
+                if (!q || !q.parentId) {
+                    addQ();
+                }
+            } catch (e) {
+                const answerDisplay = document.getElementById(`answerDisplay${id}`);
+                if (answerDisplay) {
+                    answerDisplay.innerHTML = `
+                        <div class="answer-text" style="color: #ef4444;">⚠️ Error: ${e.message}</div>
+                        <button class="edit-answer-btn" onclick="editAnswer(${id})" title="Edit answer manually">✏️</button>
+                    `;
+                }
+                if (row && row.cells[3]) {
+                    row.cells[3].innerHTML = '<span class="badge badge-ready" style="background: #fee2e2; color: #991b1b;">Error</span>';
+                }
+                input.disabled = false;
+            }
+        }
+        
+        function updateThread(id) {
+            const q = qs.find(x => x.id == id);
+            if (!q || q.followups.length == 0) return;
+            
+            const el = document.getElementById('thread' + id);
+            if (!el) return;
+            
+            const rows = document.querySelectorAll(`[data-parent="${id}"]`);
+            const collapsed = rows[0] && rows[0].classList.contains('hidden');
+            
+            el.innerHTML = `<button class="btn-toggle" onclick="toggle(${id})">${collapsed ? '▶' : '▼'} ${q.followups.length} follow-up${q.followups.length > 1 ? 's' : ''}</button>`;
+        }
+        
+        function toggle(id) {
+            document.querySelectorAll(`[data-parent="${id}"]`).forEach(r => r.classList.toggle('hidden'));
+            updateThread(id);
+        }
+        
+        // Upload
+        const uploadBox = document.getElementById('uploadBox');
+        const fileInput = document.getElementById('fileInput');
+        
+        uploadBox.onclick = () => fileInput.click();
+        
+        fileInput.onchange = async (e) => {
+            if (!currentProjectId) {
+                alert('Please select or create a project first');
+                return;
+            }
+            
+            for (let file of e.target.files) {
+                const fd = new FormData();
+                fd.append('file', file);
+                try {
+                    const r = await fetch(`${API}/api/upload?project_id=${currentProjectId}`, {
+                        method: 'POST', 
+                        body: fd
+                    });
+                    if (r.ok) alert('✓ ' + file.name + ' uploaded!');
+                    else alert('Failed: ' + file.name);
+                } catch (e) {
+                    alert('Error: ' + e.message);
+                }
+            }
+            loadDocs();
+            loadProjectDocuments(currentProjectId);
+            updateProjectStats();
+        };
+        
+        async function loadDocs() {
+            try {
+                const url = currentProjectId 
+                    ? `${API}/api/documents?project_id=${currentProjectId}`
+                    : `${API}/api/documents`;
+                const r = await fetch(url);
+                const data = await r.json();
+                const list = document.getElementById('docList');
+                
+                if (data.documents && data.documents.length > 0) {
+                    list.innerHTML = data.documents.map(d => `
+                        <div class="doc-card">
+                            <div class="doc-name">
+                                <span>📄</span>
+                                <span>${d.filename}</span>
+                            </div>
+                            <div class="doc-meta">
+                                <div>📊 Pages: <strong>${d.pages || 'N/A'}</strong></div>
+                                <div>📅 Uploaded: <strong>${new Date(d.upload_date).toLocaleDateString()}</strong></div>
+                                <div>💾 Size: <strong>${formatSize(d.size)}</strong></div>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    list.innerHTML = '<p style="color: #9ca3af; text-align: center; padding: 30px;">No documents uploaded yet. Upload your first document above!</p>';
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+        
+        function formatSize(bytes) {
+            if (!bytes) return 'N/A';
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+        
+        function updateStats() {
+            const answeredQuestions = qs.filter(q => q.answer && !q.parentId);
+            document.getElementById('qCount').textContent = answeredQuestions.length;
+        }
+        
+        function exportExcel() {
+            const answered = qs.filter(q => q.question && q.answer);
+            
+            if (answered.length === 0) {
+                alert('No questions answered yet. Ask some questions first!');
+                return;
+            }
+            
+            const questions = answered.map(q => q.question).join('|||');
+            const answers = answered.map(q => q.answer).join('|||');
+            
+            window.location.href = `${API}/api/export?questions=${encodeURIComponent(questions)}&answers=${encodeURIComponent(answers)}`;
+        }
+        
+        async function openSource(filename) {
+            try {
+                const r = await fetch(`${API}/api/documents`);
+                const data = await r.json();
+                
+                if (data.documents) {
+                    const doc = data.documents.find(d => d.filename === filename);
+                    if (doc) {
+                        const viewUrl = `${API}/api/view/${doc.id}`;
+                        window.open(viewUrl, '_blank');
+                    } else {
+                        alert('Document not found: ' + filename);
+                    }
+                }
+            } catch (e) {
+                console.error('Error opening source:', e);
+                alert('Failed to open document');
+            }
+        }
+        
+        function editAnswer(id) {
+            const displayDiv = document.getElementById(`answerDisplay${id}`);
+            const editDiv = document.getElementById(`answerEdit${id}`);
+            const textarea = document.getElementById(`answerText${id}`);
+            
+            const currentAnswer = displayDiv.querySelector('.answer-text');
+            const currentText = currentAnswer ? currentAnswer.textContent : '';
+            
+            textarea.value = currentText;
+            displayDiv.style.display = 'none';
+            editDiv.style.display = 'block';
+            textarea.focus();
+        }
+        
+        function saveAnswer(id) {
+            const displayDiv = document.getElementById(`answerDisplay${id}`);
+            const editDiv = document.getElementById(`answerEdit${id}`);
+            const textarea = document.getElementById(`answerText${id}`);
+            const newAnswer = textarea.value.trim();
+            
+            if (newAnswer) {
+                displayDiv.innerHTML = `
+                    <div class="answer-text">${newAnswer}</div>
+                    <button class="edit-answer-btn" onclick="editAnswer(${id})" title="Edit answer manually">✏️</button>
+                `;
+                
+                const q = qs.find(x => x.id == id);
+                if (q) {
+                    q.answer = newAnswer;
+                    q.manual = true;
+                }
+                
+                editDiv.style.display = 'none';
+                displayDiv.style.display = 'block';
+                updateStats();
+            } else {
+                alert('Please enter an answer');
+            }
+        }
+        
+        function cancelEditAnswer(id) {
+            const displayDiv = document.getElementById(`answerDisplay${id}`);
+            const editDiv = document.getElementById(`answerEdit${id}`);
+            editDiv.style.display = 'none';
+            displayDiv.style.display = 'block';
+        }
+        
+        // Close modal when clicking outside
+        document.getElementById('newProjectModal').onclick = (e) => {
+            if (e.target.id === 'newProjectModal') {
+                closeNewProjectModal();
+            }
+        };
+        
+        // Init
+        window.onload = async () => {
+            console.log('Loaded');
+            initializeColumns();
+            await loadProjects();
+            addQ();
+            loadDocs();
+        };
+    </script>
+</body>
+</html>

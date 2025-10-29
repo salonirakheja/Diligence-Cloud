@@ -1,0 +1,25 @@
+
+FINANCIAL STATEMENT ANALYSIS
+
+Company: RetailNext Corp
+Period: FY 2023
+Prepared: October 2025
+
+EXECUTIVE SUMMARY:
+The company demonstrates strong financial performance with revenue of $195M and year-over-year growth of 57%. 
+Key financial metrics indicate healthy operations with positive cash flow and sustainable growth trajectory.
+
+REVENUE BREAKDOWN:
+- Primary revenue stream: Maintenance contracts
+- Secondary streams: Maintenance contracts, API usage fees
+- Customer concentration: Top 10 customers represent 54% of revenue
+
+PROFITABILITY:
+- Gross Margin: 69%
+- EBITDA: $21.7M
+- Net Income: $20.3M
+
+CASH POSITION:
+- Cash and equivalents: $34.8M
+- Working capital: $26.7M
+- Burn rate: $1.4M/month

@@ -1,0 +1,376 @@
+{
+  "project": {
+    "id": "project_2",
+    "name": "GreenEnergy Solutions - Due Diligence",
+    "company": "GreenEnergy Solutions",
+    "industry": "Renewable Energy",
+    "revenue": "$78M",
+    "employees": 250,
+    "created_date": "2025-07-24T22:30:29.156081",
+    "status": "Active"
+  },
+  "documents": [
+    {
+      "id": "project_2_doc_1",
+      "name": "Annual Financial Statements",
+      "category": "financial",
+      "upload_date": "2025-10-08T22:30:29.150394",
+      "pages": 13,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_2_doc_2",
+      "name": "Quarterly Reports Q1-Q4",
+      "category": "financial",
+      "upload_date": "2025-09-13T22:30:29.150516",
+      "pages": 86,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_2_doc_3",
+      "name": "Cash Flow Analysis",
+      "category": "financial",
+      "upload_date": "2025-09-25T22:30:29.150628",
+      "pages": 116,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_2_doc_4",
+      "name": "Revenue Projections 2024-2026",
+      "category": "financial",
+      "upload_date": "2025-10-21T22:30:29.150738",
+      "pages": 124,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_2_doc_5",
+      "name": "Tax Returns 2021-2023",
+      "category": "financial",
+      "upload_date": "2025-08-12T22:30:29.150849",
+      "pages": 31,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_2_doc_6",
+      "name": "Accounts Receivable Aging Report",
+      "category": "financial",
+      "upload_date": "2025-08-24T22:30:29.150959",
+      "pages": 45,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_2_doc_7",
+      "name": "EBITDA Analysis",
+      "category": "financial",
+      "upload_date": "2025-10-06T22:30:29.151070",
+      "pages": 135,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_2_doc_8",
+      "name": "Capital Expenditure Summary",
+      "category": "financial",
+      "upload_date": "2025-08-28T22:30:29.151181",
+      "pages": 124,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_2_doc_9",
+      "name": "Articles of Incorporation",
+      "category": "legal",
+      "upload_date": "2025-08-24T22:30:29.151291",
+      "pages": 110,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_2_doc_10",
+      "name": "Shareholder Agreement",
+      "category": "legal",
+      "upload_date": "2025-08-09T22:30:29.151413",
+      "pages": 87,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_2_doc_11",
+      "name": "Employment Contracts",
+      "category": "legal",
+      "upload_date": "2025-08-11T22:30:29.151534",
+      "pages": 42,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_2_doc_12",
+      "name": "Intellectual Property Portfolio",
+      "category": "legal",
+      "upload_date": "2025-09-26T22:30:29.151657",
+      "pages": 60,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_2_doc_13",
+      "name": "Pending Litigation Summary",
+      "category": "legal",
+      "upload_date": "2025-09-24T22:30:29.151783",
+      "pages": 58,
+      "status": "pending"
+    },
+    {
+      "id": "project_2_doc_14",
+      "name": "Regulatory Compliance Report",
+      "category": "legal",
+      "upload_date": "2025-08-18T22:30:29.151905",
+      "pages": 135,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_2_doc_15",
+      "name": "Customer Contracts (Top 10)",
+      "category": "legal",
+      "upload_date": "2025-10-19T22:30:29.152016",
+      "pages": 57,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_2_doc_16",
+      "name": "Vendor Agreements",
+      "category": "legal",
+      "upload_date": "2025-09-08T22:30:29.152126",
+      "pages": 109,
+      "status": "pending"
+    },
+    {
+      "id": "project_2_doc_17",
+      "name": "Organizational Chart",
+      "category": "operational",
+      "upload_date": "2025-10-25T22:30:29.152236",
+      "pages": 101,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_2_doc_18",
+      "name": "Key Employee Bios",
+      "category": "operational",
+      "upload_date": "2025-08-13T22:30:29.152346",
+      "pages": 31,
+      "status": "pending"
+    },
+    {
+      "id": "project_2_doc_19",
+      "name": "IT Infrastructure Overview",
+      "category": "operational",
+      "upload_date": "2025-09-07T22:30:29.152460",
+      "pages": 89,
+      "status": "pending"
+    },
+    {
+      "id": "project_2_doc_20",
+      "name": "Customer Acquisition Analysis",
+      "category": "operational",
+      "upload_date": "2025-10-04T22:30:29.152570",
+      "pages": 74,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_2_doc_21",
+      "name": "Supply Chain Documentation",
+      "category": "operational",
+      "upload_date": "2025-08-24T22:30:29.152680",
+      "pages": 18,
+      "status": "pending"
+    },
+    {
+      "id": "project_2_doc_22",
+      "name": "Product Roadmap",
+      "category": "operational",
+      "upload_date": "2025-07-28T22:30:29.152791",
+      "pages": 35,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_2_doc_23",
+      "name": "Market Analysis Report",
+      "category": "operational",
+      "upload_date": "2025-10-01T22:30:29.152908",
+      "pages": 57,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_2_doc_24",
+      "name": "Competitive Landscape",
+      "category": "operational",
+      "upload_date": "2025-09-25T22:30:29.153040",
+      "pages": 125,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_2_doc_25",
+      "name": "Employee Handbook",
+      "category": "hr",
+      "upload_date": "2025-08-29T22:30:29.153150",
+      "pages": 63,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_2_doc_26",
+      "name": "Compensation & Benefits Summary",
+      "category": "hr",
+      "upload_date": "2025-08-04T22:30:29.153262",
+      "pages": 109,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_2_doc_27",
+      "name": "Turnover Analysis",
+      "category": "hr",
+      "upload_date": "2025-09-29T22:30:29.153372",
+      "pages": 90,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_2_doc_28",
+      "name": "Key Person Dependencies",
+      "category": "hr",
+      "upload_date": "2025-09-16T22:30:29.153487",
+      "pages": 89,
+      "status": "pending"
+    },
+    {
+      "id": "project_2_doc_29",
+      "name": "Recruitment Strategy",
+      "category": "hr",
+      "upload_date": "2025-09-29T22:30:29.153599",
+      "pages": 64,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_2_doc_30",
+      "name": "Training Programs Overview",
+      "category": "hr",
+      "upload_date": "2025-08-03T22:30:29.153709",
+      "pages": 114,
+      "status": "reviewed"
+    }
+  ],
+  "qa_pairs": [
+    {
+      "id": 1,
+      "question": "What are the main revenue streams?",
+      "answer": "The company generates revenue from three primary sources: API usage fees (53%), Enterprise licensing (27%), and Maintenance contracts (12%).",
+      "category": "financial",
+      "source": "Cash Flow Analysis",
+      "status": "\u2713 Verified",
+      "date": "2025-08-29",
+      "confidence": "95%"
+    },
+    {
+      "id": 2,
+      "question": "What is the current revenue run rate?",
+      "answer": "Based on the most recent quarterly reports, the annual revenue run rate is approximately $78M, showing 45% year-over-year growth.",
+      "category": "financial",
+      "source": "Cash Flow Analysis",
+      "status": "\u26a0 Review",
+      "date": "2025-09-15",
+      "confidence": "90%"
+    },
+    {
+      "id": 3,
+      "question": "Are all employees under contract?",
+      "answer": "Yes, 98% of employees have signed employment agreements. 1 key employees have non-compete clauses extending 17 months post-employment.",
+      "category": "legal",
+      "source": "Regulatory Compliance Report",
+      "status": "\u26a0 Review",
+      "date": "2025-09-19",
+      "confidence": "85%"
+    },
+    {
+      "id": 4,
+      "question": "Any regulatory compliance issues?",
+      "answer": "The company is fully compliant with all major regulatory requirements. Recent audit found 1 minor findings, all addressed within 23 days.",
+      "category": "legal",
+      "source": "Articles of Incorporation",
+      "status": "\u26a0 Review",
+      "date": "2025-09-05",
+      "confidence": "90%"
+    },
+    {
+      "id": 5,
+      "question": "How scalable is the infrastructure?",
+      "answer": "Current infrastructure can support 8x growth. Recent load testing showed capacity for 3.1M concurrent users with 71ms average response time.",
+      "category": "operational",
+      "source": "Supply Chain Documentation",
+      "status": "\u2713 Verified",
+      "date": "2025-09-22",
+      "confidence": "85%"
+    },
+    {
+      "id": 6,
+      "question": "How many customers does the company have?",
+      "answer": "The company serves 3622 customers, with 107 enterprise clients accounting for 100% of revenue.",
+      "category": "operational",
+      "source": "Organizational Chart",
+      "status": "\u2713 Verified",
+      "date": "2025-10-07",
+      "confidence": "85%"
+    },
+    {
+      "id": 7,
+      "question": "What is the customer churn rate?",
+      "answer": "Annual churn rate is 11.6%, which is slightly below the industry benchmark of 14.9%. Net retention rate is 125%.",
+      "category": "operational",
+      "source": "IT Infrastructure Overview",
+      "status": "\u2713 Verified",
+      "date": "2025-10-25",
+      "confidence": "95%"
+    },
+    {
+      "id": 8,
+      "question": "What is the technology stack?",
+      "answer": "The platform is built on React/Node.js, Kubernetes, and AWS Lambda. Infrastructure is hosted on Azure with 99.87% uptime.",
+      "category": "operational",
+      "source": "Market Analysis Report",
+      "status": "\u26a0 Review",
+      "date": "2025-10-07",
+      "confidence": "95%"
+    },
+    {
+      "id": 9,
+      "question": "What is the customer acquisition cost?",
+      "answer": "Current CAC is $2326, with an LTV/CAC ratio of 3.5. The payback period is approximately 21 months.",
+      "category": "operational",
+      "source": "IT Infrastructure Overview",
+      "status": "\u2713 Verified",
+      "date": "2025-10-23",
+      "confidence": "85%"
+    },
+    {
+      "id": 10,
+      "question": "What are the key risks?",
+      "answer": "Main risks identified: technology obsolescence, regulatory changes, and customer concentration. Mitigation strategies are documented in the risk management framework.",
+      "category": "strategic",
+      "source": "General Analysis",
+      "status": "\u2713 Verified",
+      "date": "2025-09-09",
+      "confidence": "90%"
+    },
+    {
+      "id": 11,
+      "question": "What is the management team's experience?",
+      "answer": "The executive team has an average of 5 years of industry experience. CEO previously led digital transformation at Fortune 500, CFO led IPO at tech unicorn.",
+      "category": "strategic",
+      "source": "General Analysis",
+      "status": "\u2713 Verified",
+      "date": "2025-09-30",
+      "confidence": "90%"
+    },
+    {
+      "id": 12,
+      "question": "Who are the main competitors?",
+      "answer": "Primary competitors are Legacy Systems Ltd, IndustryGiant Corp, and StartupDisruptor. The company differentiates through lower pricing model and better integration capabilities.",
+      "category": "strategic",
+      "source": "General Analysis",
+      "status": "\u2713 Verified",
+      "date": "2025-09-22",
+      "confidence": "95%"
+    }
+  ]
+}

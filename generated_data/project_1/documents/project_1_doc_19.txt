@@ -1,0 +1,30 @@
+
+OPERATIONAL DUE DILIGENCE REPORT
+
+Company: TechVenture AI
+Assessment Date: October 2025
+
+BUSINESS MODEL:
+SaaS-based platform with subscription pricing model. Mix of self-service and enterprise sales.
+
+CUSTOMER BASE:
+- Total customers: 4467
+- Customer segments: SMB (60%), Mid-Market (30%), Enterprise (10%)
+- Retention rate: 92%
+
+TECHNOLOGY INFRASTRUCTURE:
+- Platform: Elasticsearch
+- Hosting: Azure
+- Uptime: 99.86%
+- Security: SOC 2 Type II certified
+
+KEY METRICS:
+- Monthly Recurring Revenue: $9.7M
+- Average Contract Value: $73K
+- Customer Acquisition Cost: $3333
+
+TEAM:
+- Total employees: 336
+- Engineering: 48%
+- Sales/Marketing: 34%
+- G&A: 10%

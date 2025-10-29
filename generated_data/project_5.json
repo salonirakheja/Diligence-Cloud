@@ -1,0 +1,386 @@
+{
+  "project": {
+    "id": "project_5",
+    "name": "RetailNext Corp - Due Diligence",
+    "company": "RetailNext Corp",
+    "industry": "E-Commerce",
+    "revenue": "$110M",
+    "employees": 300,
+    "created_date": "2025-08-12T22:30:29.180398",
+    "status": "Active"
+  },
+  "documents": [
+    {
+      "id": "project_5_doc_1",
+      "name": "Annual Financial Statements",
+      "category": "financial",
+      "upload_date": "2025-08-21T22:30:29.174147",
+      "pages": 21,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_5_doc_2",
+      "name": "Quarterly Reports Q1-Q4",
+      "category": "financial",
+      "upload_date": "2025-09-23T22:30:29.174316",
+      "pages": 39,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_5_doc_3",
+      "name": "Cash Flow Analysis",
+      "category": "financial",
+      "upload_date": "2025-08-29T22:30:29.174433",
+      "pages": 6,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_5_doc_4",
+      "name": "Revenue Projections 2024-2026",
+      "category": "financial",
+      "upload_date": "2025-08-13T22:30:29.174548",
+      "pages": 101,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_5_doc_5",
+      "name": "Tax Returns 2021-2023",
+      "category": "financial",
+      "upload_date": "2025-10-24T22:30:29.174670",
+      "pages": 40,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_5_doc_6",
+      "name": "Accounts Receivable Aging Report",
+      "category": "financial",
+      "upload_date": "2025-10-03T22:30:29.174795",
+      "pages": 114,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_5_doc_7",
+      "name": "EBITDA Analysis",
+      "category": "financial",
+      "upload_date": "2025-08-09T22:30:29.174908",
+      "pages": 60,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_5_doc_8",
+      "name": "Capital Expenditure Summary",
+      "category": "financial",
+      "upload_date": "2025-09-18T22:30:29.175021",
+      "pages": 107,
+      "status": "pending"
+    },
+    {
+      "id": "project_5_doc_9",
+      "name": "Articles of Incorporation",
+      "category": "legal",
+      "upload_date": "2025-08-24T22:30:29.175150",
+      "pages": 14,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_5_doc_10",
+      "name": "Shareholder Agreement",
+      "category": "legal",
+      "upload_date": "2025-09-05T22:30:29.175284",
+      "pages": 43,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_5_doc_11",
+      "name": "Employment Contracts",
+      "category": "legal",
+      "upload_date": "2025-10-08T22:30:29.175431",
+      "pages": 47,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_5_doc_12",
+      "name": "Intellectual Property Portfolio",
+      "category": "legal",
+      "upload_date": "2025-10-14T22:30:29.175622",
+      "pages": 145,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_5_doc_13",
+      "name": "Pending Litigation Summary",
+      "category": "legal",
+      "upload_date": "2025-10-03T22:30:29.175742",
+      "pages": 142,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_5_doc_14",
+      "name": "Regulatory Compliance Report",
+      "category": "legal",
+      "upload_date": "2025-10-05T22:30:29.175886",
+      "pages": 61,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_5_doc_15",
+      "name": "Customer Contracts (Top 10)",
+      "category": "legal",
+      "upload_date": "2025-09-30T22:30:29.176010",
+      "pages": 100,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_5_doc_16",
+      "name": "Vendor Agreements",
+      "category": "legal",
+      "upload_date": "2025-08-24T22:30:29.176133",
+      "pages": 38,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_5_doc_17",
+      "name": "Organizational Chart",
+      "category": "operational",
+      "upload_date": "2025-08-26T22:30:29.176250",
+      "pages": 98,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_5_doc_18",
+      "name": "Key Employee Bios",
+      "category": "operational",
+      "upload_date": "2025-07-29T22:30:29.176376",
+      "pages": 101,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_5_doc_19",
+      "name": "IT Infrastructure Overview",
+      "category": "operational",
+      "upload_date": "2025-10-25T22:30:29.176492",
+      "pages": 27,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_5_doc_20",
+      "name": "Customer Acquisition Analysis",
+      "category": "operational",
+      "upload_date": "2025-09-10T22:30:29.176616",
+      "pages": 71,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_5_doc_21",
+      "name": "Supply Chain Documentation",
+      "category": "operational",
+      "upload_date": "2025-09-08T22:30:29.176727",
+      "pages": 129,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_5_doc_22",
+      "name": "Product Roadmap",
+      "category": "operational",
+      "upload_date": "2025-09-05T22:30:29.176839",
+      "pages": 142,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_5_doc_23",
+      "name": "Market Analysis Report",
+      "category": "operational",
+      "upload_date": "2025-09-03T22:30:29.176952",
+      "pages": 97,
+      "status": "pending"
+    },
+    {
+      "id": "project_5_doc_24",
+      "name": "Competitive Landscape",
+      "category": "operational",
+      "upload_date": "2025-09-16T22:30:29.177064",
+      "pages": 52,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_5_doc_25",
+      "name": "Employee Handbook",
+      "category": "hr",
+      "upload_date": "2025-09-08T22:30:29.177177",
+      "pages": 19,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_5_doc_26",
+      "name": "Compensation & Benefits Summary",
+      "category": "hr",
+      "upload_date": "2025-09-01T22:30:29.177294",
+      "pages": 32,
+      "status": "pending"
+    },
+    {
+      "id": "project_5_doc_27",
+      "name": "Turnover Analysis",
+      "category": "hr",
+      "upload_date": "2025-07-30T22:30:29.177410",
+      "pages": 18,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_5_doc_28",
+      "name": "Key Person Dependencies",
+      "category": "hr",
+      "upload_date": "2025-08-01T22:30:29.177522",
+      "pages": 121,
+      "status": "pending"
+    },
+    {
+      "id": "project_5_doc_29",
+      "name": "Recruitment Strategy",
+      "category": "hr",
+      "upload_date": "2025-09-04T22:30:29.177655",
+      "pages": 117,
+      "status": "reviewed"
+    },
+    {
+      "id": "project_5_doc_30",
+      "name": "Training Programs Overview",
+      "category": "hr",
+      "upload_date": "2025-10-18T22:30:29.177773",
+      "pages": 102,
+      "status": "reviewed"
+    }
+  ],
+  "qa_pairs": [
+    {
+      "id": 1,
+      "question": "What are the major expenses?",
+      "answer": "Major expense categories include: Personnel costs (60%), Technology/Infrastructure (16%), and Sales/Marketing (22%).",
+      "category": "financial",
+      "source": "Accounts Receivable Aging Report",
+      "status": "\u26a0 Review",
+      "date": "2025-10-07",
+      "confidence": "95%"
+    },
+    {
+      "id": 2,
+      "question": "What are the main revenue streams?",
+      "answer": "The company generates revenue from three primary sources: Enterprise licensing (45%), SaaS subscriptions (27%), and Maintenance contracts (21%).",
+      "category": "financial",
+      "source": "Annual Financial Statements",
+      "status": "\u2713 Verified",
+      "date": "2025-09-17",
+      "confidence": "95%"
+    },
+    {
+      "id": 3,
+      "question": "What is the current revenue run rate?",
+      "answer": "Based on the most recent quarterly reports, the annual revenue run rate is approximately $110M, showing 31% year-over-year growth.",
+      "category": "financial",
+      "source": "Accounts Receivable Aging Report",
+      "status": "\u2713 Verified",
+      "date": "2025-10-24",
+      "confidence": "90%"
+    },
+    {
+      "id": 4,
+      "question": "Are there any outstanding debts?",
+      "answer": "The company has $17M in outstanding debt, consisting of convertible notes and credit line, with an average interest rate of 14.8%.",
+      "category": "financial",
+      "source": "Cash Flow Analysis",
+      "status": "\u2713 Verified",
+      "date": "2025-09-25",
+      "confidence": "95%"
+    },
+    {
+      "id": 5,
+      "question": "Are there any pending lawsuits?",
+      "answer": "There are currently 3 pending litigation cases: regulatory inquiry and employment matter. Management estimates total exposure at $2.1M.",
+      "category": "legal",
+      "source": "Intellectual Property Portfolio",
+      "status": "\u2713 Verified",
+      "date": "2025-08-30",
+      "confidence": "95%"
+    },
+    {
+      "id": 6,
+      "question": "What IP does the company own?",
+      "answer": "The company owns 17 patents, 8 trademarks, and has 48 copyrighted materials. Key patents include: API frameworks.",
+      "category": "legal",
+      "source": "Regulatory Compliance Report",
+      "status": "\u2713 Verified",
+      "date": "2025-09-29",
+      "confidence": "95%"
+    },
+    {
+      "id": 7,
+      "question": "How many customers does the company have?",
+      "answer": "The company serves 4951 customers, with 146 enterprise clients accounting for 87% of revenue.",
+      "category": "operational",
+      "source": "Customer Acquisition Analysis",
+      "status": "\u2713 Verified",
+      "date": "2025-09-17",
+      "confidence": "95%"
+    },
+    {
+      "id": 8,
+      "question": "How scalable is the infrastructure?",
+      "answer": "Current infrastructure can support 9x growth. Recent load testing showed capacity for 5.3M concurrent users with 138ms average response time.",
+      "category": "operational",
+      "source": "Market Analysis Report",
+      "status": "\u2713 Verified",
+      "date": "2025-08-31",
+      "confidence": "95%"
+    },
+    {
+      "id": 9,
+      "question": "What is the management team's experience?",
+      "answer": "The executive team has an average of 4 years of industry experience. CEO previously serial entrepreneur with 3 exits, CFO led finance transformation at PE firm.",
+      "category": "strategic",
+      "source": "General Analysis",
+      "status": "\u26a0 Review",
+      "date": "2025-09-07",
+      "confidence": "95%"
+    },
+    {
+      "id": 10,
+      "question": "Who are the main competitors?",
+      "answer": "Primary competitors are NewEntrant Tech, MarketLeader Inc, and StartupDisruptor. The company differentiates through proprietary AI technology and better integration capabilities.",
+      "category": "strategic",
+      "source": "General Analysis",
+      "status": "\u2713 Verified",
+      "date": "2025-09-11",
+      "confidence": "95%"
+    },
+    {
+      "id": 11,
+      "question": "What is the market size?",
+      "answer": "The total addressable market is estimated at $47B, with a serviceable addressable market of $7B. Current market share is approximately 12.9%.",
+      "category": "strategic",
+      "source": "General Analysis",
+      "status": "\u2713 Verified",
+      "date": "2025-09-23",
+      "confidence": "85%"
+    },
+    {
+      "id": 12,
+      "question": "What are the key risks?",
+      "answer": "Main risks identified: key person dependency, key person dependency, and technology obsolescence. Mitigation strategies are documented in the risk management framework.",
+      "category": "strategic",
+      "source": "General Analysis",
+      "status": "\u2713 Verified",
+      "date": "2025-09-01",
+      "confidence": "95%"
+    },
+    {
+      "id": 13,
+      "question": "What are the growth opportunities?",
+      "answer": "Key growth opportunities include: M&A opportunities, vertical integration, and strategic partnerships. Management projects these could add $$110MM in revenue over 3 years.",
+      "category": "strategic",
+      "source": "General Analysis",
+      "status": "\u2713 Verified",
+      "date": "2025-10-02",
+      "confidence": "85%"
+    }
+  ]
+}

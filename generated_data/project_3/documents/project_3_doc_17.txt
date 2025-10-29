@@ -1,0 +1,30 @@
+
+OPERATIONAL DUE DILIGENCE REPORT
+
+Company: FinanceHub Inc
+Assessment Date: October 2025
+
+BUSINESS MODEL:
+SaaS-based platform with subscription pricing model. Mix of self-service and enterprise sales.
+
+CUSTOMER BASE:
+- Total customers: 4626
+- Customer segments: SMB (60%), Mid-Market (30%), Enterprise (10%)
+- Retention rate: 93%
+
+TECHNOLOGY INFRASTRUCTURE:
+- Platform: GraphQL
+- Hosting: Azure
+- Uptime: 99.7%
+- Security: SOC 2 Type II certified
+
+KEY METRICS:
+- Monthly Recurring Revenue: $5.1M
+- Average Contract Value: $36K
+- Customer Acquisition Cost: $1403
+
+TEAM:
+- Total employees: 486
+- Engineering: 44%
+- Sales/Marketing: 32%
+- G&A: 19%
