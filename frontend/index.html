@@ -1572,17 +1572,25 @@
         // View Management
         function showLandingPage() {
             currentView = 'landing';
-            document.getElementById('landingPage').classList.add('active');
-            document.getElementById('projectView').classList.remove('landing-active', 'visible');
-            document.getElementById('header').style.display = 'flex';
+            const landingPage = document.getElementById('landingPage');
+            const projectView = document.getElementById('projectView');
+            const header = document.getElementById('header');
+            
+            if (landingPage) landingPage.classList.add('active');
+            if (projectView) projectView.classList.remove('landing-active', 'visible');
+            if (header) header.style.display = 'flex';
             renderLandingPage();
         }
         
         function showProjectView(projectId) {
             currentView = 'project';
-            document.getElementById('landingPage').classList.remove('active');
-            document.getElementById('projectView').classList.add('landing-active', 'visible');
-            document.getElementById('header').style.display = 'flex';
+            const landingPage = document.getElementById('landingPage');
+            const projectView = document.getElementById('projectView');
+            const header = document.getElementById('header');
+            
+            if (landingPage) landingPage.classList.remove('active');
+            if (projectView) projectView.classList.add('landing-active', 'visible');
+            if (header) header.style.display = 'flex';
         }
         
         function renderLandingPage() {
@@ -1650,14 +1658,16 @@
                         `;
                     }).join('');
                     
-                    // Set current project to first one if not set
-                    if (!currentProjectId && projects.length > 0) {
+                    // Set current project to first one if not set AND we're in project view
+                    // But don't auto-select on landing page - let user explicitly choose
+                    if (!currentProjectId && projects.length > 0 && currentView === 'project') {
                         currentProjectId = projects[0].id;
                         selectProject(currentProjectId);
                     }
                     
-                    // Load documents as sub-items for active project
-                    if (currentProjectId) {
+                    // Only load documents as sub-items for active project if we're in project view
+                    // Don't load documents when on landing page to avoid showing duplicates
+                    if (currentProjectId && currentView === 'project') {
                         loadProjectDocuments(currentProjectId);
                     }
                 } else {
@@ -1670,9 +1680,11 @@
         
         async function loadProjectDocuments(projectId) {
             try {
+                console.log(`[loadProjectDocuments] Loading documents for project: ${projectId}`);
                 const r = await fetch(`${API}/api/documents?project_id=${projectId}`);
                 const data = await r.json();
                 const documents = data.documents || [];
+                console.log(`[loadProjectDocuments] Received ${documents.length} documents for project ${projectId}:`, documents.map(d => d.filename));
                 
                 const subContainer = document.getElementById(`sub-${projectId}`);
                 if (subContainer) {
@@ -1696,8 +1708,14 @@
         
         function selectProject(projectId, clearSubfolder = true) {
             currentProjectId = projectId;
+            console.log('selectProject called - projectId:', projectId, 'currentProjectId set to:', currentProjectId);
             if (clearSubfolder) {
                 currentSubfolderId = null;
+            }
+            
+            // If we're on landing page, switch to project view
+            if (currentView === 'landing') {
+                showProjectView(projectId);
             }
             
             // Update active state
@@ -1714,11 +1732,29 @@
             loadDocs();
             updateProjectStats();
             
-            // Load Q&A history for the selected project
+            // Load Q&A history for the selected project (this will also add a question input row)
             loadQAHistory();
+            
+            // Ensure a question row exists even if loadQAHistory returns early
+            // Check if tbody has any input rows, if not, add one
+            setTimeout(() => {
+                const tbody = document.getElementById('tbody');
+                if (tbody) {
+                    const hasInputRow = Array.from(tbody.querySelectorAll('tr')).some(row => {
+                        const input = row.querySelector('input.q');
+                        return input && !input.readOnly;
+                    });
+                    if (!hasInputRow) {
+                        addQ();
+                    }
+                }
+            }, 100);
         }
         
         function openProject(projectId) {
+            // Set currentProjectId immediately to ensure it's available for uploads
+            currentProjectId = projectId;
+            console.log('openProject called - projectId:', projectId, 'currentProjectId set to:', currentProjectId);
             showProjectView(projectId);
             selectProject(projectId);
         }
@@ -2076,6 +2112,10 @@
         // Questions
         function addQ(parentId) {
             const tbody = document.getElementById('tbody');
+            if (!tbody) {
+                console.error('[addQ] tbody element not found!');
+                return;
+            }
             const id = Date.now();
             const isFollowup = parentId != null;
             
@@ -2276,6 +2316,9 @@
         uploadBox.onclick = () => fileInput.click();
         
         fileInput.onchange = async (e) => {
+            // Debug: Check currentProjectId
+            console.log('Upload attempt - currentProjectId:', currentProjectId, 'currentView:', currentView);
+            
             if (!currentProjectId) {
                 alert('Please select or create a project first');
                 return;
@@ -2285,14 +2328,21 @@
                 const fd = new FormData();
                 fd.append('file', file);
                 try {
+                    console.log('Uploading file:', file.name, 'to project:', currentProjectId);
                     const r = await fetch(`${API}/api/upload?project_id=${currentProjectId}`, {
                         method: 'POST', 
                         body: fd
                     });
-                    if (r.ok) alert('✓ ' + file.name + ' uploaded!');
-                    else alert('Failed: ' + file.name);
+                    const responseData = await r.json();
+                    console.log('Upload response:', responseData);
+                    if (r.ok && responseData.success) {
+                        alert('✓ ' + file.name + ' uploaded!');
+                    } else {
+                        alert('Failed to upload ' + file.name + ': ' + (responseData.detail || responseData.message || 'Unknown error'));
+                    }
                 } catch (e) {
-                    alert('Error: ' + e.message);
+                    console.error('Upload error:', e);
+                    alert('Error uploading ' + file.name + ': ' + e.message);
                 }
             }
             loadDocs();
@@ -2302,9 +2352,16 @@
         
         async function loadDocs() {
             try {
-                const url = currentProjectId 
-                    ? `${API}/api/documents?project_id=${currentProjectId}`
-                    : `${API}/api/documents`;
+                // Only load documents if a project is selected
+                if (!currentProjectId) {
+                    const list = document.getElementById('docList');
+                    if (list) {
+                        list.innerHTML = '<p style="color: #9ca3af; text-align: center; padding: 30px;">Please select a project to view documents.</p>';
+                    }
+                    return;
+                }
+                
+                const url = `${API}/api/documents?project_id=${currentProjectId}`;
                 const r = await fetch(url);
                 const data = await r.json();
                 const list = document.getElementById('docList');
@@ -2333,14 +2390,22 @@
         
         async function loadQAHistory() {
             try {
-                if (!currentProjectId) return;
+                if (!currentProjectId) {
+                    console.log('[loadQAHistory] No currentProjectId, skipping');
+                    return;
+                }
                 
+                console.log('[loadQAHistory] Loading Q&A for project:', currentProjectId);
                 const r = await fetch(`${API}/api/qa?project_id=${currentProjectId}`);
                 const data = await r.json();
                 
                 // Clear existing Q&A and add saved ones
                 qs = [];
                 const tbody = document.getElementById('tbody');
+                if (!tbody) {
+                    console.error('[loadQAHistory] tbody element not found!');
+                    return;
+                }
                 tbody.innerHTML = '';
                 
                 if (data.success && data.qa_list && data.qa_list.length > 0) {
@@ -2513,8 +2578,8 @@
             // Show landing page by default
             showLandingPage();
             addQ();
-            loadDocs();
-            // Note: loadQAHistory() is called in selectProject(), not here
+            // Note: loadDocs() and loadQAHistory() are called in selectProject(), not here
+            // This ensures documents are only loaded when a project is explicitly selected
         };
     </script>
 </body>

@@ -264,6 +264,8 @@ async def upload_document(file: UploadFile = File(...), project_id: str = "defau
     Upload and process a document
     Supports: PDF, Excel (.xlsx, .xls, .csv), Word (.docx), Text (.txt)
     """
+    print(f"[UPLOAD] Received upload request for project_id: {project_id}, filename: {file.filename}")
+    
     if not AI_ENABLED:
         raise HTTPException(
             status_code=503,
@@ -275,6 +277,7 @@ async def upload_document(file: UploadFile = File(...), project_id: str = "defau
         project = project_manager.get_project(project_id)
         if not project:
             raise HTTPException(status_code=404, detail=f"Project '{project_id}' not found")
+        print(f"[UPLOAD] Project verified: {project['name']}")
         
         # Generate unique ID
         doc_id = str(uuid.uuid4())
@@ -304,6 +307,8 @@ async def upload_document(file: UploadFile = File(...), project_id: str = "defau
             },
             project_id=project_id
         )
+        
+        print(f"[UPLOAD] Document saved with doc_id: {doc_id}, project_id: {project_id}")
         
         # Note: Document and question counts removed per user request
         
