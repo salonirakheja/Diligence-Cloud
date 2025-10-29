@@ -88,9 +88,13 @@
         
         /* Main Container with Sidebar */
         .main-container {
-            display: flex;
+            display: none;
             flex: 1;
             overflow: hidden;
+        }
+        
+        .main-container.visible {
+            display: flex;
         }
         
         /* Left Sidebar */
@@ -862,6 +866,179 @@
             cursor: pointer;
             font-weight: 500;
         }
+        
+        /* Landing Page Styles */
+        .landing-page {
+            display: none;
+            padding: 40px;
+            background: #f5f7fa;
+            min-height: calc(100vh - 80px);
+        }
+        
+        .landing-page.active {
+            display: block;
+        }
+        
+        .landing-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 32px;
+        }
+        
+        .landing-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #111827;
+            margin: 0;
+        }
+        
+        .landing-subtitle {
+            color: #6b7280;
+            margin-top: 8px;
+            font-size: 1rem;
+        }
+        
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+            margin-top: 32px;
+        }
+        
+        .project-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 24px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        .project-card:hover {
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+            border-color: #667eea;
+        }
+        
+        .project-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+        
+        .project-card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #111827;
+            margin: 0;
+            flex: 1;
+        }
+        
+        .project-card-actions {
+            display: flex;
+            gap: 8px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .project-card:hover .project-card-actions {
+            opacity: 1;
+        }
+        
+        .project-card-action-btn {
+            background: transparent;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 6px 10px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #6b7280;
+            transition: all 0.2s;
+        }
+        
+        .project-card-action-btn:hover {
+            background: #f3f4f6;
+            color: #111827;
+        }
+        
+        .project-card-action-btn.delete:hover {
+            background: #fee2e2;
+            color: #dc2626;
+            border-color: #dc2626;
+        }
+        
+        .project-card-meta {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 16px;
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        .project-card-stat {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .project-card-footer {
+            border-top: 1px solid #f3f4f6;
+            padding-top: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.813rem;
+            color: #9ca3af;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #9ca3af;
+        }
+        
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+        
+        .empty-state-title {
+            font-size: 1.5rem;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+        
+        .main-container.landing-active .sidebar {
+            display: none;
+        }
+        
+        .main-container.landing-active .content-area {
+            width: 100%;
+            max-width: none;
+        }
+        
+        .back-button {
+            background: white;
+            border: 1px solid #e5e7eb;
+            color: #6b7280;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        
+        .back-button:hover {
+            background: #f9fafb;
+            color: #111827;
+            border-color: #d1d5db;
+        }
     </style>
 </head>
 <body>
@@ -886,8 +1063,23 @@
         </div>
     </div>
     
+    <!-- Landing Page -->
+    <div class="landing-page active" id="landingPage">
+        <div class="landing-header">
+            <div>
+                <h1 class="landing-title">My Projects</h1>
+                <p class="landing-subtitle">Manage your due diligence projects</p>
+            </div>
+            <button class="btn-primary" onclick="showNewProjectModal()">+ New Project</button>
+        </div>
+        
+        <div class="projects-grid" id="projectsGrid">
+            <!-- Projects will be loaded here -->
+        </div>
+    </div>
+    
     <!-- Main Container with Sidebar -->
-    <div class="main-container">
+    <div class="main-container" id="projectView">
         <!-- Left Sidebar -->
         <div class="sidebar">
             <div class="sidebar-header">
@@ -901,6 +1093,11 @@
         
         <!-- Content Area -->
         <div class="content-area">
+            <div style="padding: 16px 40px; background: white; border-bottom: 1px solid #e5e7eb;">
+                <button class="back-button" onclick="showLandingPage()">
+                    ← Back to Projects
+                </button>
+            </div>
             <div class="tabs">
                 <div class="tab active" id="tab-qa">Q&A Interface</div>
                 <div class="tab" id="tab-upload">Upload Documents</div>
@@ -1021,6 +1218,7 @@
         let inlineEditingProjectId = null;
         let projects = [];
         let subfolders = {}; // Store subfolders per project: { projectId: [subfolders] }
+        let currentView = 'landing'; // 'landing' or 'project'
         
         // Column management
         let columns = [
@@ -1348,6 +1546,62 @@
         }
         
         // Project Management
+        // View Management
+        function showLandingPage() {
+            currentView = 'landing';
+            document.getElementById('landingPage').classList.add('active');
+            document.getElementById('projectView').classList.remove('landing-active', 'visible');
+            document.getElementById('header').style.display = 'flex';
+            renderLandingPage();
+        }
+        
+        function showProjectView(projectId) {
+            currentView = 'project';
+            document.getElementById('landingPage').classList.remove('active');
+            document.getElementById('projectView').classList.add('landing-active', 'visible');
+            document.getElementById('header').style.display = 'flex';
+        }
+        
+        function renderLandingPage() {
+            const grid = document.getElementById('projectsGrid');
+            
+            if (projects.length > 0) {
+                grid.innerHTML = projects.map(p => {
+                    const docCount = p.document_count || 0;
+                    const qCount = p.question_count || 0;
+                    const updatedAt = p.updated_at ? new Date(p.updated_at).toLocaleDateString() : 'Never';
+                    
+                    return `
+                        <div class="project-card" onclick="openProject('${p.id}')">
+                            <div class="project-card-header">
+                                <h3 class="project-card-title">${p.name}</h3>
+                                <div class="project-card-actions">
+                                    <button class="project-card-action-btn" onclick="event.stopPropagation(); enableInlineEdit('${p.id}', '${p.name.replace(/'/g, "\\'")}')" title="Edit">✏️</button>
+                                    <button class="project-card-action-btn delete" onclick="event.stopPropagation(); deleteProject('${p.id}', '${p.name.replace(/'/g, "\\'")}')" title="Delete">🗑️</button>
+                                </div>
+                            </div>
+                            <div class="project-card-meta">
+                                <div class="project-card-stat">📄 ${docCount} documents</div>
+                                <div class="project-card-stat">❓ ${qCount} questions</div>
+                            </div>
+                            ${p.description ? `<p style="color: #6b7280; font-size: 0.875rem; margin-bottom: 16px;">${p.description}</p>` : ''}
+                            <div class="project-card-footer">
+                                <span>Updated ${updatedAt}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                grid.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <div class="empty-state-icon">📁</div>
+                        <div class="empty-state-title">No projects yet</div>
+                        <p>Create your first project to get started with due diligence</p>
+                    </div>
+                `;
+            }
+        }
+        
         async function loadProjects() {
             try {
                 const r = await fetch(`${API}/api/projects`);
@@ -1355,6 +1609,11 @@
                 projects = data.projects || [];
                 
                 const tree = document.getElementById('projectTree');
+                
+                // Render landing page if in landing view
+                if (currentView === 'landing') {
+                    renderLandingPage();
+                }
                 
                 if (projects.length > 0) {
                     tree.innerHTML = projects.map(p => {
@@ -1444,6 +1703,11 @@
             addQ();
         }
         
+        function openProject(projectId) {
+            showProjectView(projectId);
+            selectProject(projectId);
+        }
+        
         function showNewProjectModal() {
             document.getElementById('newProjectModal').classList.add('show');
             document.getElementById('projectName').value = '';
@@ -1475,9 +1739,9 @@
                     alert('✓ Project created: ' + name);
                     closeNewProjectModal();
                     
-                    // Reload projects and switch to new one
+                    // Reload projects and return to landing page
                     await loadProjects();
-                    selectProject(data.project.id);
+                    showLandingPage();
                 } else {
                     alert('Failed to create project');
                 }
@@ -1585,21 +1849,9 @@
                 if (r.ok) {
                     alert('✓ Project deleted: ' + projectName);
                     
-                    // If we deleted the current project, clear it and select the first available one
-                    if (currentProjectId === projectId) {
-                        currentProjectId = null;
-                        
-                        // Reload projects and select the first one
-                        await loadProjects();
-                        
-                        // Clear the Q&A table
-                        document.getElementById('tbody').innerHTML = '';
-                        qs = [];
-                        addQ();
-                    } else {
-                        // Just reload projects
-                        await loadProjects();
-                    }
+                    // Reload projects and return to landing page
+                    await loadProjects();
+                    showLandingPage();
                 } else {
                     const errorData = await r.json();
                     alert('Failed to delete project: ' + (errorData.detail || 'Unknown error'));
@@ -2186,6 +2438,8 @@
             console.log('Loaded');
             initializeColumns();
             await loadProjects();
+            // Show landing page by default
+            showLandingPage();
             addQ();
             loadDocs();
         };
