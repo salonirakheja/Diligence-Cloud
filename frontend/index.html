@@ -1714,10 +1714,8 @@
             loadDocs();
             updateProjectStats();
             
-            // Clear and reload Q&A table
-            document.getElementById('tbody').innerHTML = '';
-            qs = [];
-            addQ();
+            // Load Q&A history for the selected project
+            loadQAHistory();
         }
         
         function openProject(projectId) {
@@ -2333,6 +2331,74 @@
             }
         }
         
+        async function loadQAHistory() {
+            try {
+                if (!currentProjectId) return;
+                
+                const r = await fetch(`${API}/api/qa?project_id=${currentProjectId}`);
+                const data = await r.json();
+                
+                if (data.success && data.qa_list && data.qa_list.length > 0) {
+                    // Clear existing Q&A and add saved ones
+                    qs = [];
+                    const tbody = document.getElementById('tbody');
+                    tbody.innerHTML = '';
+                    
+                    // Add all Q&A entries from the server
+                    for (const qa of data.qa_list) {
+                        const id = qs.length > 0 ? Math.max(...qs.map(q => q.id)) + 1 : Date.now();
+                        const row = tbody.insertRow(-1);
+                        row.dataset.id = id;
+                        
+                        // Build row with visible columns
+                        columns.filter(col => col.visible).forEach(col => {
+                            const td = document.createElement('td');
+                            
+                            if (col.id === 'question') {
+                                td.innerHTML = `<div class="q-text">${qa.question}</div>`;
+                            } else if (col.id === 'answer') {
+                                td.innerHTML = `
+                                    <div class="answer-display" id="answerDisplay${id}">
+                                        <div class="answer-text">${qa.answer}</div>
+                                        <button class="edit-answer-btn" onclick="editAnswer(${id})" title="Edit answer manually">✏️</button>
+                                    </div>
+                                `;
+                            } else if (col.id === 'source') {
+                                if (qa.sources && qa.sources.length > 0) {
+                                    const sourceHtml = qa.sources.map(s => 
+                                        `<div class="source-item">📄 ${s.filename}</div>`
+                                    ).join('');
+                                    td.innerHTML = `<div class="source-list">${sourceHtml}</div>`;
+                                } else {
+                                    td.innerHTML = '<span class="empty-text">No sources</span>';
+                                }
+                            } else if (col.id === 'status') {
+                                td.innerHTML = '<span class="badge badge-done">Done</span>';
+                            } else if (col.id === 'date') {
+                                td.style.fontSize = '0.813rem';
+                                td.style.color = '#6b7280';
+                                const date = qa.created_at ? new Date(qa.created_at).toLocaleDateString() : new Date().toLocaleDateString();
+                                td.innerHTML = `<span>${date}</span>`;
+                            }
+                            
+                            row.appendChild(td);
+                        });
+                        
+                        qs.push({
+                            id,
+                            question: qa.question,
+                            answer: qa.answer,
+                            sources: qa.sources || []
+                        });
+                    }
+                    
+                    updateStats();
+                }
+            } catch (e) {
+                console.error('Failed to load Q&A history:', e);
+            }
+        }
+        
         function formatSize(bytes) {
             if (!bytes) return 'N/A';
             if (bytes < 1024) return bytes + ' B';
@@ -2443,6 +2509,7 @@
             showLandingPage();
             addQ();
             loadDocs();
+            await loadQAHistory();
         };
     </script>
 </body>

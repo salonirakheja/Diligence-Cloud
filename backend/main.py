@@ -571,6 +571,28 @@ async def get_statistics():
         raise HTTPException(status_code=500, detail=f"Failed to get statistics: {str(e)}")
 
 
+@app.get("/api/qa")
+async def get_qa_history(project_id: Optional[str] = None):
+    """Get Q&A history for a project"""
+    try:
+        if project_id:
+            qa_list = vector_store.list_qa(project_id)
+        else:
+            # Return all Q&A from all projects
+            qa_list = []
+            for proj_id, qas in vector_store.qa_history.items():
+                for qa in qas:
+                    qa_list.append(qa)
+        
+        return {
+            "success": True,
+            "count": len(qa_list),
+            "qa_list": qa_list
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve Q&A history: {str(e)}")
+
+
 @app.get("/api/view/{doc_id}")
 async def view_document(doc_id: str, page: int = 1):
     """
