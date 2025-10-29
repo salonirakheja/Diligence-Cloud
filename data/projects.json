@@ -6,7 +6,7 @@
     "created_at": "2025-10-26T20:20:42.736504",
     "updated_at": "2025-10-26T23:28:04.557704",
     "document_count": 0,
-    "question_count": 18
+    "question_count": 0
   },
   {
     "id": "9a1c1261-abb0-45e1-87c7-e56e0bd0d445",
@@ -22,18 +22,18 @@
     "name": "Tech Venture AI - Due Diligence",
     "description": "",
     "created_at": "2025-10-26T23:01:09.201792",
-    "updated_at": "2025-10-27T23:29:29.388101",
+    "updated_at": "2025-10-28T19:44:46.598349",
     "document_count": 5,
-    "question_count": 171
+    "question_count": 0
   },
   {
     "id": "18c04a11-f564-48c5-9c52-1e29b1c81bc8",
     "name": "GreenEnergy Solutions - Due Diligence",
     "description": "",
     "created_at": "2025-10-27T21:44:55.101684",
-    "updated_at": "2025-10-27T23:36:28.260479",
+    "updated_at": "2025-10-28T19:46:37.295787",
     "document_count": 5,
-    "question_count": 16
+    "question_count": 0
   },
   {
     "id": "51d49c5e-b209-4e81-9447-399eb33a433a",
@@ -42,7 +42,7 @@
     "created_at": "2025-10-27T21:45:08.764281",
     "updated_at": "2025-10-27T23:42:31.328917",
     "document_count": 5,
-    "question_count": 16
+    "question_count": 0
   },
   {
     "id": "346339d5-4015-4ffb-b14e-710b2d7ec90e",
@@ -51,7 +51,7 @@
     "created_at": "2025-10-27T21:45:30.959202",
     "updated_at": "2025-10-27T23:49:40.992650",
     "document_count": 5,
-    "question_count": 16
+    "question_count": 0
   },
   {
     "id": "48f2b70e-82d7-4061-beb5-1e6eac9338be",
@@ -60,6 +60,6 @@
     "created_at": "2025-10-27T21:45:41.911016",
     "updated_at": "2025-10-27T23:55:28.861474",
     "document_count": 5,
-    "question_count": 16
+    "question_count": 0
   }
 ]

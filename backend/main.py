@@ -1,4 +1,4 @@
-"""
+"Í""
 Autonomous Diligence Cloud - Main FastAPI Application
 Handles document upload, processing, and Q&A functionality
 """
@@ -146,6 +146,16 @@ async def list_projects():
     """List all projects"""
     try:
         projects = project_manager.list_projects()
+        
+        # Update counts from actual database
+        for project in projects:
+            project_id = project.get("id")
+            # Get actual document count
+            documents = vector_store.list_documents(project_id=project_id)
+            project["document_count"] = len(documents)
+            # Get actual Q&A count
+            project["question_count"] = vector_store.get_qa_count(project_id)
+        
         return {
             "success": True,
             "count": len(projects),
@@ -182,6 +192,9 @@ async def get_project(project_id: str):
         # Get document count for this project
         documents = vector_store.list_documents(project_id=project_id)
         project["document_count"] = len(documents)
+        
+        # Get actual Q&A count from database
+        project["question_count"] = vector_store.get_qa_count(project_id)
         
         return {
             "success": True,
@@ -232,6 +245,9 @@ async def delete_project(project_id: str):
                 file_path = Path(doc['file_path'])
                 if file_path.exists():
                     file_path.unlink()
+        
+        # Delete Q&A history for this project
+        vector_store.delete_project_qa(project_id)
         
         # Delete the project
         success = project_manager.delete_project(project_id)
@@ -379,9 +395,25 @@ async def ask_question(q: Question):
             span.set_attribute("response.confidence", result.get("confidence", 0))
             span.set_attribute("response.sources_count", len(result.get("sources", [])))
             
-            # Increment project question count
+            # Save Q&A pair to database
             if project_id:
-                project_manager.increment_question_count(project_id)
+                qa_id = str(uuid.uuid4())
+                vector_store.save_qa(
+                    qa_id=qa_id,
+                    question=result["question"],
+                    answer=result["answer"],
+                    sources=result.get("sources", []),
+                    project_id=project_id,
+                    confidence=result.get("confidence", 0)
+                )
+                
+                # Update project question count based on actual stored count
+                actual_count = vector_store.get_qa_count(project_id)
+                project = project_manager.get_project(project_id)
+                if project:
+                    project["question_count"] = actual_count
+                    project["updated_at"] = datetime.now().isoformat()
+                    project_manager._save_projects()
             
             # Set success status
             span.set_status(Status(StatusCode.OK))

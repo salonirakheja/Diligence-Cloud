@@ -8,6 +8,7 @@ import json
 import numpy as np
 from typing import List, Dict, Optional
 from pathlib import Path
+from datetime import datetime
 import openai
 
 
@@ -20,7 +21,9 @@ class SimpleVectorStore:
         self.persist_directory.mkdir(parents=True, exist_ok=True)
         
         self.db_file = self.persist_directory / "documents.json"
+        self.qa_file = self.persist_directory / "qa_history.json"
         self.documents = self._load_documents()
+        self.qa_history = self._load_qa_history()
         
         # Set OpenAI API key
         self.api_key = os.getenv("OPENAI_API_KEY") or os.getenv("OPENROUTER_API_KEY")
@@ -44,6 +47,21 @@ class SimpleVectorStore:
         """Save documents to JSON file"""
         with open(self.db_file, 'w', encoding='utf-8') as f:
             json.dump(self.documents, f, indent=2)
+    
+    def _load_qa_history(self) -> Dict:
+        """Load Q&A history from JSON file"""
+        if self.qa_file.exists():
+            try:
+                with open(self.qa_file, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except:
+                return {}
+        return {}
+    
+    def _save_qa_history(self):
+        """Save Q&A history to JSON file"""
+        with open(self.qa_file, 'w', encoding='utf-8') as f:
+            json.dump(self.qa_history, f, indent=2)
     
     def _get_embedding(self, text: str) -> List[float]:
         """Get embedding from OpenAI using v1.0+ API"""
@@ -200,6 +218,44 @@ class SimpleVectorStore:
             del self.documents[doc_id]
             self._save_documents()
             print(f"Deleted document {doc_id}")
+            return True
+        return False
+    
+    def save_qa(self, qa_id: str, question: str, answer: str, sources: List[Dict], 
+                project_id: str, confidence: float = 0.0) -> None:
+        """Save a Q&A pair"""
+        if project_id not in self.qa_history:
+            self.qa_history[project_id] = []
+        
+        qa_entry = {
+            'id': qa_id,
+            'question': question,
+            'answer': answer,
+            'sources': sources,
+            'confidence': confidence,
+            'created_at': datetime.now().isoformat()
+        }
+        
+        self.qa_history[project_id].append(qa_entry)
+        self._save_qa_history()
+    
+    def get_qa_count(self, project_id: str) -> int:
+        """Get the count of Q&A pairs for a project"""
+        if project_id in self.qa_history:
+            return len(self.qa_history[project_id])
+        return 0
+    
+    def list_qa(self, project_id: str) -> List[Dict]:
+        """List all Q&A pairs for a project"""
+        if project_id in self.qa_history:
+            return self.qa_history[project_id]
+        return []
+    
+    def delete_project_qa(self, project_id: str) -> bool:
+        """Delete all Q&A for a project"""
+        if project_id in self.qa_history:
+            del self.qa_history[project_id]
+            self._save_qa_history()
             return True
         return False
     
