@@ -2034,8 +2034,9 @@
         }
         
         function updateStats() {
-            const answeredQuestions = qs.filter(q => q.answer && !q.parentId);
-            document.getElementById('qCount').textContent = answeredQuestions.length;
+            // Don't update the count here - use updateProjectStats() instead
+            // The count should come from the backend API, not the frontend array
+            // This function is kept for compatibility but does nothing
         }
         
         function exportExcel() {
