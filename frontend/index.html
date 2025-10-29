@@ -204,7 +204,8 @@
         }
         
         .add-subfolder-btn,
-        .edit-project-btn {
+        .edit-project-btn,
+        .delete-project-btn {
             opacity: 0.4;
             background: transparent;
             border: none;
@@ -225,14 +226,29 @@
             margin-left: 4px;
         }
         
+        .delete-project-btn {
+            margin-left: 2px;
+            color: #ef4444;
+        }
+        
         .project-item:hover .add-subfolder-btn,
-        .project-item:hover .edit-project-btn {
+        .project-item:hover .edit-project-btn,
+        .project-item:hover .delete-project-btn {
             opacity: 1;
         }
         
-        .add-subfolder-btn:hover,
+        .add-subfolder-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+        
         .edit-project-btn:hover {
             background: #667eea;
+            color: white;
+        }
+        
+        .delete-project-btn:hover {
+            background: #ef4444;
             color: white;
         }
         
@@ -1349,6 +1365,7 @@
                                 <span class="project-icon" onclick="selectProject('${p.id}')">📁</span>
                                 <span class="project-name" onclick="selectProject('${p.id}')">${p.name}</span>
                                 <button class="edit-project-btn" onclick="event.stopPropagation(); enableInlineEdit('${p.id}', '${p.name.replace(/'/g, "\\'")}')" title="Edit project">✏️</button>
+                                <button class="delete-project-btn" onclick="event.stopPropagation(); deleteProject('${p.id}', '${p.name.replace(/'/g, "\\'")}')" title="Delete project">🗑️</button>
                                 <button class="add-subfolder-btn" onclick="event.stopPropagation(); showAddSubfolderModal('${p.id}')" title="Add subfolder">+</button>
                             </div>
                             <div class="sub-items" id="sub-${p.id}">
@@ -1549,6 +1566,43 @@
                     }
                 } else {
                     alert('Failed to update project');
+                }
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
+        }
+        
+        async function deleteProject(projectId, projectName) {
+            if (!confirm(`Are you sure you want to delete "${projectName}"?\n\nThis will permanently delete the project and all its documents and Q&A history.`)) {
+                return;
+            }
+            
+            try {
+                const r = await fetch(`${API}/api/projects/${projectId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (r.ok) {
+                    alert('✓ Project deleted: ' + projectName);
+                    
+                    // If we deleted the current project, clear it and select the first available one
+                    if (currentProjectId === projectId) {
+                        currentProjectId = null;
+                        
+                        // Reload projects and select the first one
+                        await loadProjects();
+                        
+                        // Clear the Q&A table
+                        document.getElementById('tbody').innerHTML = '';
+                        qs = [];
+                        addQ();
+                    } else {
+                        // Just reload projects
+                        await loadProjects();
+                    }
+                } else {
+                    const errorData = await r.json();
+                    alert('Failed to delete project: ' + (errorData.detail || 'Unknown error'));
                 }
             } catch (e) {
                 alert('Error: ' + e.message);
