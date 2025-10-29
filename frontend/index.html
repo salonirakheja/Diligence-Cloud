@@ -1695,10 +1695,7 @@
         }
         
         function selectProject(projectId, clearSubfolder = true) {
-            console.log('selectProject called with projectId:', projectId);
             currentProjectId = projectId;
-            console.log('currentProjectId set to:', currentProjectId);
-            
             if (clearSubfolder) {
                 currentSubfolderId = null;
             }
@@ -2153,8 +2150,6 @@
             const question = input.value.trim();
             if (!question) return;
             
-            console.log('ask function - currentProjectId:', currentProjectId);
-            
             if (!currentProjectId) {
                 alert('Please select a project first');
                 return;
@@ -2338,20 +2333,17 @@
         
         async function loadQAHistory() {
             try {
-                console.log('loadQAHistory called - currentProjectId:', currentProjectId);
                 if (!currentProjectId) return;
                 
                 const r = await fetch(`${API}/api/qa?project_id=${currentProjectId}`);
                 const data = await r.json();
                 
-                console.log('Q&A data loaded:', data);
+                // Clear existing Q&A and add saved ones
+                qs = [];
+                const tbody = document.getElementById('tbody');
+                tbody.innerHTML = '';
                 
                 if (data.success && data.qa_list && data.qa_list.length > 0) {
-                    // Clear existing Q&A and add saved ones
-                    qs = [];
-                    const tbody = document.getElementById('tbody');
-                    tbody.innerHTML = '';
-                    
                     // Add all Q&A entries from the server
                     for (const qa of data.qa_list) {
                         const id = qs.length > 0 ? Math.max(...qs.map(q => q.id)) + 1 : Date.now();
@@ -2399,11 +2391,16 @@
                             sources: qa.sources || []
                         });
                     }
-                    
-                    updateStats();
                 }
+                
+                // Always add a new question row after loading Q&A history
+                addQ();
+                
+                updateStats();
             } catch (e) {
                 console.error('Failed to load Q&A history:', e);
+                // Even if loading fails, add a new question row
+                addQ();
             }
         }
         
