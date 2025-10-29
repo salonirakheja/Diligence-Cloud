@@ -337,7 +337,7 @@
         
         .tabs {
             background: white;
-            padding: 0 40px;
+            padding: 0 16px;
             border-bottom: 1px solid #e5e7eb;
             display: flex;
             gap: 32px;
@@ -1093,23 +1093,23 @@
         
         <!-- Content Area -->
         <div class="content-area">
-            <div style="padding: 16px 40px; background: white; border-bottom: 1px solid #e5e7eb;">
+            <div style="padding: 16px; background: white; border-bottom: 1px solid #e5e7eb; width: 100%;">
                 <button class="back-button" onclick="showLandingPage()">
                     ← Back to Projects
                 </button>
             </div>
-            <div class="tabs">
+            <div class="tabs" style="width: 100%;">
                 <div class="tab active" id="tab-qa">Q&A Interface</div>
                 <div class="tab" id="tab-upload">Upload Documents</div>
             </div>
             
             <div class="content active" id="content-qa">
-                <div style="padding: 20px 40px; background: white; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
-                    <div>
+                <div style="padding: 20px 16px; background: white; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <div style="padding-left: 16px;">
                         <h2 style="font-size: 1.25rem; color: #111827; margin: 0;">Questions & Answers</h2>
                         <p style="color: #6b7280; font-size: 0.813rem; margin: 4px 0 0 0;">Click column names to edit • Drag edges to resize • Use ⚙️ menu to manage columns</p>
                     </div>
-                    <div style="display: flex; gap: 8px; align-items: center;">
+                    <div style="display: flex; gap: 8px; align-items: center; padding-right: 16px;">
                         <div class="column-menu">
                             <button class="btn-add-column" onclick="toggleColumnMenu()">⚙️ Columns</button>
                             <div class="column-dropdown" id="columnDropdown">
@@ -1130,7 +1130,7 @@
                     </div>
                 </div>
                 <div style="overflow-x: auto; overflow-y: auto; flex: 1; width: 100%;">
-                    <table id="qaTable" style="width: auto;">
+                    <table id="qaTable" style="width: 100%;">
                         <thead>
                             <tr id="tableHeader"></tr>
                         </thead>
