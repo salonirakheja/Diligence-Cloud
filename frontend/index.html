@@ -1406,51 +1406,79 @@
         }
         
         function updateTableWidth() {
-            // Calculate total width of all visible columns
             const totalWidth = columns
                 .filter(col => col.visible)
                 .reduce((sum, col) => sum + col.width, 0);
             
             const table = document.getElementById('qaTable');
-            const container = table ? table.parentElement : null;
-            const availableWidth = container ? container.offsetWidth - 2 : 0;
-            
-            // Calculate percentage widths to fill available space
             const visibleColumns = columns.filter(col => col.visible);
             
-            // Update header column widths with percentages
-            const header = document.getElementById('tableHeader');
-            if (header && totalWidth > 0) {
-                const ths = header.querySelectorAll('th');
-                ths.forEach((th, index) => {
-                    if (visibleColumns[index]) {
-                        const percentage = (visibleColumns[index].width / totalWidth) * 100;
-                        th.style.width = percentage + '%';
-                        th.style.minWidth = '0';
-                    }
-                });
-            }
-            
-            // Update body column widths with percentages
-            const tbody = document.getElementById('tbody');
-            if (tbody && totalWidth > 0) {
-                const rows = tbody.querySelectorAll('tr');
-                rows.forEach(row => {
-                    const cells = row.querySelectorAll('td');
-                    cells.forEach((cell, index) => {
+            if (!userHasResizedColumns) {
+                // Mode 1: Percentage-based to fill full width
+                const header = document.getElementById('tableHeader');
+                if (header && totalWidth > 0) {
+                    const ths = header.querySelectorAll('th');
+                    ths.forEach((th, index) => {
                         if (visibleColumns[index]) {
                             const percentage = (visibleColumns[index].width / totalWidth) * 100;
-                            cell.style.width = percentage + '%';
-                            cell.style.minWidth = '0';
+                            th.style.width = percentage + '%';
+                            th.style.minWidth = '0';
                         }
                     });
-                });
-            }
-            
-            // Set table to 100% width to fill container
-            if (table) {
-                table.style.width = '100%';
-                table.style.minWidth = '100%';
+                }
+                
+                const tbody = document.getElementById('tbody');
+                if (tbody && totalWidth > 0) {
+                    const rows = tbody.querySelectorAll('tr');
+                    rows.forEach(row => {
+                        const cells = row.querySelectorAll('td');
+                        cells.forEach((cell, index) => {
+                            if (visibleColumns[index]) {
+                                const percentage = (visibleColumns[index].width / totalWidth) * 100;
+                                cell.style.width = percentage + '%';
+                                cell.style.minWidth = '0';
+                            }
+                        });
+                    });
+                }
+                
+                if (table) {
+                    table.style.width = '100%';
+                    table.style.minWidth = '100%';
+                }
+            } else {
+                // Mode 2: Fixed pixels, allow overflow
+                const header = document.getElementById('tableHeader');
+                if (header) {
+                    const ths = header.querySelectorAll('th');
+                    ths.forEach((th, index) => {
+                        if (visibleColumns[index]) {
+                            th.style.width = visibleColumns[index].width + 'px';
+                            th.style.minWidth = visibleColumns[index].width + 'px';
+                            th.style.maxWidth = visibleColumns[index].width + 'px';
+                        }
+                    });
+                }
+                
+                const tbody = document.getElementById('tbody');
+                if (tbody) {
+                    const rows = tbody.querySelectorAll('tr');
+                    rows.forEach(row => {
+                        const cells = row.querySelectorAll('td');
+                        cells.forEach((cell, index) => {
+                            if (visibleColumns[index]) {
+                                cell.style.width = visibleColumns[index].width + 'px';
+                                cell.style.minWidth = visibleColumns[index].width + 'px';
+                                cell.style.maxWidth = visibleColumns[index].width + 'px';
+                            }
+                        });
+                    });
+                }
+                
+                if (table) {
+                    table.style.width = totalWidth + 'px';
+                    table.style.minWidth = totalWidth + 'px';
+                }
             }
         }
         
