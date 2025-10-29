@@ -1243,6 +1243,7 @@
         let currentColumn = null;
         let startX = 0;
         let startWidth = 0;
+        let userHasResizedColumns = false;
         
         // Initialize column management
         function initializeColumns() {
@@ -1400,6 +1401,7 @@
             const newWidth = Math.max(80, startWidth + diff);
             
             col.width = newWidth;
+            userHasResizedColumns = true;
             updateTableWidth();
         }
         
@@ -1448,7 +1450,7 @@
             // Set table to 100% width to fill container
             if (table) {
                 table.style.width = '100%';
-                table.style.minWidth = availableWidth + 'px';
+                table.style.minWidth = '100%';
             }
         }
         
