@@ -1347,7 +1347,7 @@
                             <div class="project-item ${isActive}" id="project-${p.id}">
                                 <span class="expand-icon" onclick="event.stopPropagation(); toggleProject('${p.id}')">▶</span>
                                 <span class="project-icon" onclick="selectProject('${p.id}')">📁</span>
-                                <span class="project-name" onclick="selectProject('${p.id}')" ondblclick="event.stopPropagation(); enableInlineEdit('${p.id}', '${p.name.replace(/'/g, "\\'")}')">${p.name}</span>
+                                <span class="project-name" onclick="selectProject('${p.id}')">${p.name}</span>
                                 <button class="edit-project-btn" onclick="event.stopPropagation(); showEditProjectModal('${p.id}', '${p.name.replace(/'/g, "\\'")}'))" title="Edit project">✏️</button>
                                 <button class="add-subfolder-btn" onclick="event.stopPropagation(); showAddSubfolderModal('${p.id}')" title="Add subfolder">+</button>
                             </div>
