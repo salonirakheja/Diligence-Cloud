@@ -119,13 +119,35 @@ class ProjectUpdate(BaseModel):
 # Routes
 
 @app.get("/")
+async def serve_landing():
+    """Serve the landing page as homepage"""
+    import sys
+    print("=" * 80, file=sys.stderr)
+    print("LANDING ROUTE HIT!!!", file=sys.stderr)
+    print("=" * 80, file=sys.stderr)
+    landing_path = PROJECT_ROOT / "frontend" / "landing.html"
+    print(f"Landing path: {landing_path.absolute()}", file=sys.stderr)
+    print(f"Exists: {landing_path.exists()}", file=sys.stderr)
+    if landing_path.exists():
+        print(f"RETURNING LANDING.HTML", file=sys.stderr)
+        return FileResponse(
+            path=str(landing_path.absolute()),
+            media_type="text/html",
+            headers={"Cache-Control": "no-cache, no-store, must-revalidate"}
+        )
+    print(f"LANDING PAGE NOT FOUND!", file=sys.stderr)
+    return {"message": "Landing page not found."}
+
+
+@app.get("/app")
 async def serve_frontend():
-    """Serve the main frontend HTML"""
-    # Get the parent directory (project root) and look for frontend
-    backend_dir = Path(__file__).parent
-    frontend_path = backend_dir.parent / "frontend" / "index.html"
+    """Serve the main application"""
+    frontend_path = PROJECT_ROOT / "frontend" / "index.html"
     if frontend_path.exists():
-        return FileResponse(frontend_path)
+        return FileResponse(
+            path=str(frontend_path.absolute()),
+            media_type="text/html"
+        )
     return {"message": "Frontend not found. Please ensure frontend/index.html exists."}
 
 
@@ -394,15 +416,20 @@ async def ask_question(q: Question):
             span.set_attribute("response.sources_count", len(result.get("sources", [])))
             
             # Save Q&A pair to database
+            qa_id = None
             if project_id:
                 qa_id = str(uuid.uuid4())
+                # Calculate row number (count existing Q&A + 1)
+                existing_qa = vector_store.list_qa(project_id)
+                row_number = len(existing_qa) + 1
                 vector_store.save_qa(
                     qa_id=qa_id,
                     question=result["question"],
                     answer=result["answer"],
                     sources=result.get("sources", []),
                     project_id=project_id,
-                    confidence=result.get("confidence", 0)
+                    confidence=result.get("confidence", 0),
+                    row_number=row_number
                 )
                 
                 # Note: Document and question counts removed per user request
@@ -411,13 +438,20 @@ async def ask_question(q: Question):
             # Set success status
             span.set_status(Status(StatusCode.OK))
             
-            return Answer(
+            answer = Answer(
                 question=result["question"],
                 answer=result["answer"],
                 sources=result["sources"],
                 confidence=result["confidence"],
                 agents_used=result.get("agents_used", [])
             )
+            
+            # Include qa_id in response for frontend tracking
+            answer_dict = answer.dict()
+            if qa_id:
+                answer_dict["qa_id"] = qa_id
+            
+            return answer_dict
             
         except Exception as e:
             # Set error status
@@ -596,6 +630,28 @@ async def get_qa_history(project_id: Optional[str] = None):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve Q&A history: {str(e)}")
+
+
+@app.delete("/api/qa/{qa_id}")
+async def delete_qa(qa_id: str, project_id: Optional[str] = None):
+    """Delete a specific Q&A entry"""
+    try:
+        if not project_id:
+            raise HTTPException(status_code=400, detail="project_id is required")
+        
+        success = vector_store.delete_qa(qa_id, project_id)
+        
+        if not success:
+            raise HTTPException(status_code=404, detail="Q&A entry not found")
+        
+        return {
+            "success": True,
+            "message": "Q&A entry deleted successfully"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete Q&A entry: {str(e)}")
 
 
 @app.get("/api/view/{doc_id}")
