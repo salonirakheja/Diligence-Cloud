@@ -222,7 +222,7 @@ class SimpleVectorStore:
         return False
     
     def save_qa(self, qa_id: str, question: str, answer: str, sources: List[Dict], 
-                project_id: str, confidence: float = 0.0) -> None:
+                project_id: str, confidence: float = 0.0, row_number: Optional[int] = None) -> None:
         """Save a Q&A pair"""
         if project_id not in self.qa_history:
             self.qa_history[project_id] = []
@@ -233,7 +233,8 @@ class SimpleVectorStore:
             'answer': answer,
             'sources': sources,
             'confidence': confidence,
-            'created_at': datetime.now().isoformat()
+            'created_at': datetime.now().isoformat(),
+            'row_number': row_number
         }
         
         self.qa_history[project_id].append(qa_entry)
@@ -244,6 +245,24 @@ class SimpleVectorStore:
         if project_id in self.qa_history:
             return self.qa_history[project_id]
         return []
+    
+    def delete_qa(self, qa_id: str, project_id: str) -> bool:
+        """Delete a specific Q&A entry"""
+        if project_id not in self.qa_history:
+            return False
+        
+        # Find and remove the Q&A entry
+        qa_list = self.qa_history[project_id]
+        original_length = len(qa_list)
+        self.qa_history[project_id] = [qa for qa in qa_list if qa.get('id') != qa_id]
+        
+        if len(self.qa_history[project_id]) < original_length:
+            # Renumber remaining rows
+            for i, qa in enumerate(self.qa_history[project_id]):
+                qa['row_number'] = i + 1
+            self._save_qa_history()
+            return True
+        return False
     
     def delete_project_qa(self, project_id: str) -> bool:
         """Delete all Q&A for a project"""

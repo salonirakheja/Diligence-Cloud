@@ -418,10 +418,96 @@
             white-space: nowrap;
             border-bottom: 2px solid #e5e7eb;
             position: sticky;
-            top: 0;
+            top: 24px;
             z-index: 10;
-            position: relative;
             user-select: none;
+        }
+        
+        /* Column letter row styling */
+        #columnLetterRow th {
+            background: #f3f4f6;
+            padding: 4px 8px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 10px;
+            color: #6b7280;
+            border-bottom: 1px solid #e5e7eb;
+            position: sticky;
+            top: 0;
+            z-index: 11;
+            min-width: 60px;
+        }
+        
+        /* Row number column styling */
+        .row-number-cell {
+            background: #f3f4f6;
+            padding: 8px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 11px;
+            color: #6b7280;
+            border-right: 1px solid #e5e7eb;
+            position: sticky;
+            left: 0;
+            z-index: 9;
+            min-width: 50px;
+            width: 50px;
+            user-select: none;
+            cursor: default;
+        }
+        
+        .row-number-cell:hover {
+            background: #e5e7eb;
+        }
+        
+        .row-delete-btn {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            width: 16px;
+            height: 16px;
+            font-size: 10px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            padding: 0;
+        }
+        
+        .row-number-cell:hover .row-delete-btn {
+            opacity: 1;
+        }
+        
+        .row-delete-btn:hover {
+            background: #dc2626;
+        }
+        
+        /* Freeze panes: First column (row numbers) stays fixed */
+        #qaTable thead tr th:first-child,
+        #qaTable tbody tr td:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 8;
+        }
+        
+        #qaTable thead tr th:first-child {
+            z-index: 12;
+        }
+        
+        #qaTable tbody tr td:first-child {
+            z-index: 7;
+        }
+        
+        /* Ensure row number cell has proper background when row is hovered */
+        tbody tr:hover td:first-child {
+            background: #e5e7eb;
         }
         
         .column-resizer {
@@ -1118,9 +1204,12 @@
                         </button>
                     </div>
                 </div>
-                <div style="overflow-x: auto; overflow-y: auto; flex: 1; width: 100%;">
+                <div style="overflow-x: auto; overflow-y: auto; flex: 1; width: 100%; position: relative;" id="tableScrollContainer">
                     <table id="qaTable" style="width: 100%;">
                         <thead>
+                            <tr id="columnLetterRow" style="background: #f9fafb; border-bottom: 1px solid #e5e7eb;">
+                                <!-- Column letters will be inserted here -->
+                            </tr>
                             <tr id="tableHeader"></tr>
                         </thead>
                         <tbody id="tbody"></tbody>
@@ -1209,6 +1298,24 @@
         let subfolders = {}; // Store subfolders per project: { projectId: [subfolders] }
         let currentView = 'landing'; // 'landing' or 'project'
         
+        // Helper function to convert number to Excel column letter (A, B, C... Z, AA, AB...)
+        function numberToColumnLetter(n) {
+            let result = '';
+            while (n > 0) {
+                n--;
+                result = String.fromCharCode(65 + (n % 26)) + result;
+                n = Math.floor(n / 26);
+            }
+            return result;
+        }
+        
+        // Helper function to get column letter for a column ID
+        function getColumnLetter(columnId) {
+            const visibleColumns = columns.filter(col => col.visible && !col.isRowNumber);
+            const index = visibleColumns.findIndex(col => col.id === columnId);
+            return index >= 0 ? numberToColumnLetter(index + 1) : '';
+        }
+        
         // Column management
         let columns = [
             { id: 'question', name: 'Question', visible: true, width: 300, default: false },
@@ -1217,6 +1324,221 @@
             { id: 'status', name: 'Status', visible: true, width: 120, default: false },
             { id: 'date', name: 'Date', visible: true, width: 120, default: false }
         ];
+        
+        // Assign column letters to all columns
+        function assignColumnLetters() {
+            columns.forEach((col, index) => {
+                if (!col.isRowNumber) {
+                    col.letter = numberToColumnLetter(index + 1);
+                }
+            });
+        }
+        
+        // Initialize column letters
+        assignColumnLetters();
+        
+        // Function to renumber all rows after deletion
+        function renumberRows() {
+            const tbody = document.getElementById('tbody');
+            if (!tbody) return;
+            
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            rows.forEach((row, index) => {
+                const rowNumber = (index + 1).toString();
+                row.dataset.rowNumber = rowNumber;
+                const rowNumCell = row.cells[0]; // First cell is always row number
+                if (rowNumCell && rowNumCell.classList.contains('row-number-cell')) {
+                    const span = rowNumCell.querySelector('span');
+                    if (span) {
+                        span.textContent = rowNumber;
+                    }
+                    rowNumCell.dataset.rowNumber = rowNumber;
+                    rowNumCell.title = `Row ${rowNumber}`;
+                }
+            });
+            
+            // Recalculate all formulas after renumbering
+            recalculateAllFormulas();
+        }
+        
+        // Helper function to parse cell reference (e.g., "A1" -> {column: 0, row: 1})
+        function parseCellReference(ref) {
+            const match = ref.match(/^([A-Z]+)(\d+)$/);
+            if (!match) return null;
+            
+            const colLetters = match[1];
+            const rowNum = parseInt(match[2]);
+            
+            // Convert column letters to index
+            let colIndex = 0;
+            for (let i = 0; i < colLetters.length; i++) {
+                colIndex = colIndex * 26 + (colLetters.charCodeAt(i) - 64);
+            }
+            colIndex -= 1; // Convert from 1-based to 0-based
+            
+            return { columnIndex: colIndex, rowNumber: rowNum };
+        }
+        
+        // Helper function to convert column index to letter
+        function columnIndexToLetter(index) {
+            return numberToColumnLetter(index + 1);
+        }
+        
+        // Function to resolve cell reference to actual value
+        function resolveCellReference(ref) {
+            const parsed = parseCellReference(ref);
+            if (!parsed) return null;
+            
+            const tbody = document.getElementById('tbody');
+            if (!tbody) return null;
+            
+            // Find row by row number
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            const targetRow = rows.find(row => {
+                const rowNum = row.dataset.rowNumber;
+                return rowNum && parseInt(rowNum) === parsed.rowNumber;
+            });
+            
+            if (!targetRow) return null;
+            
+            // Get visible columns
+            const visibleColumns = columns.filter(col => col.visible);
+            if (parsed.columnIndex >= visibleColumns.length) return null;
+            
+            const targetColumn = visibleColumns[parsed.columnIndex];
+            if (!targetColumn) return null;
+            
+            // Get cell by column ID
+            const cell = getCellByColumnId(targetRow, targetColumn.id);
+            if (!cell) return null;
+            
+            // Extract text value from cell
+            if (targetColumn.id === 'answer') {
+                const answerDisplay = cell.querySelector('.answer-display .answer-text');
+                if (answerDisplay) {
+                    return answerDisplay.textContent.trim();
+                }
+            } else if (targetColumn.id === 'question') {
+                const questionInput = cell.querySelector('.q');
+                if (questionInput) {
+                    return questionInput.value.trim();
+                }
+            } else {
+                // For other columns, get text content
+                return cell.textContent.trim();
+            }
+            
+            return null;
+        }
+        
+        // Function to parse and evaluate formula
+        function parseFormula(formula) {
+            if (!formula || !formula.startsWith('=')) {
+                return { isFormula: false, value: formula };
+            }
+            
+            const formulaBody = formula.substring(1).trim();
+            
+            // Check for operations
+            const hasAddition = formulaBody.includes('+');
+            const hasSubtraction = formulaBody.includes('-');
+            
+            if (hasAddition || hasSubtraction) {
+                // Parse operation
+                const parts = formulaBody.split(/[+-]/);
+                const operators = formulaBody.match(/[+-]/g) || [];
+                
+                let result = null;
+                for (let i = 0; i < parts.length; i++) {
+                    const part = parts[i].trim();
+                    const cellRef = parseCellReference(part);
+                    let value;
+                    
+                    if (cellRef) {
+                        value = resolveCellReference(part);
+                        // Try to parse as number, otherwise use as string
+                        if (value !== null) {
+                            const numValue = parseFloat(value);
+                            if (!isNaN(numValue)) {
+                                value = numValue;
+                            } else {
+                                value = value || '';
+                            }
+                        } else {
+                            value = '';
+                        }
+                    } else {
+                        // Try to parse as number literal
+                        const numValue = parseFloat(part);
+                        if (!isNaN(numValue)) {
+                            value = numValue;
+                        } else {
+                            value = part || '';
+                        }
+                    }
+                    
+                    if (result === null) {
+                        result = value;
+                    } else {
+                        const op = operators[i - 1];
+                        if (op === '+') {
+                            if (typeof result === 'number' && typeof value === 'number') {
+                                result = result + value;
+                            } else {
+                                result = String(result) + String(value);
+                            }
+                        } else if (op === '-') {
+                            if (typeof result === 'number' && typeof value === 'number') {
+                                result = result - value;
+                            } else {
+                                result = String(result).replace(String(value), '');
+                            }
+                        }
+                    }
+                }
+                
+                return { isFormula: true, value: result !== null ? String(result) : '' };
+            } else {
+                // Simple cell reference (e.g., =A1)
+                const cellRef = parseCellReference(formulaBody);
+                if (cellRef) {
+                    const value = resolveCellReference(formulaBody);
+                    return { isFormula: true, value: value !== null ? value : '' };
+                } else {
+                    // Concatenation (default for formulas without operators)
+                    return { isFormula: true, value: formulaBody };
+                }
+            }
+        }
+        
+        // Function to recalculate all formulas
+        function recalculateAllFormulas() {
+            const tbody = document.getElementById('tbody');
+            if (!tbody) return;
+            
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            rows.forEach(row => {
+                const answerCell = getCellByColumnId(row, 'answer');
+                if (answerCell) {
+                    const answerDisplay = answerCell.querySelector('.answer-display');
+                    if (answerDisplay) {
+                        const answerText = answerDisplay.querySelector('.answer-text');
+                        if (answerText) {
+                            const currentText = answerText.textContent;
+                            // Check if it's a formula by checking if it was stored as formula
+                            const rowId = row.dataset.id;
+                            const q = qs.find(q => q.id == rowId);
+                            if (q && q.formula) {
+                                const result = parseFormula(q.formula);
+                                if (result.isFormula) {
+                                    answerText.textContent = result.value;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
         
         // Column resizing
         let isResizing = false;
@@ -1232,8 +1554,37 @@
         }
         
         function renderTableHeader() {
+            // Render column letter row
+            const columnLetterRow = document.getElementById('columnLetterRow');
+            if (columnLetterRow) {
+                columnLetterRow.innerHTML = '';
+                // Add empty cell for row number column
+                const rowNumTh = document.createElement('th');
+                rowNumTh.className = 'row-number-cell';
+                rowNumTh.style.position = 'sticky';
+                rowNumTh.style.left = '0';
+                rowNumTh.style.zIndex = '13';
+                columnLetterRow.appendChild(rowNumTh);
+                
+                // Add column letters
+                columns.filter(col => col.visible).forEach(col => {
+                    const th = document.createElement('th');
+                    th.textContent = col.letter || '';
+                    th.title = `Column ${col.letter}`;
+                    columnLetterRow.appendChild(th);
+                });
+            }
+            
+            // Render header row
             const header = document.getElementById('tableHeader');
             header.innerHTML = '';
+            
+            // Add row number column header
+            const rowNumHeader = document.createElement('th');
+            rowNumHeader.className = 'row-number-cell';
+            rowNumHeader.textContent = '#';
+            rowNumHeader.title = 'Row Number';
+            header.appendChild(rowNumHeader);
             
             columns.filter(col => col.visible).forEach(col => {
                 const th = document.createElement('th');
@@ -1290,14 +1641,16 @@
             columns.forEach(col => {
                 const option = document.createElement('div');
                 option.className = 'column-option';
+                const isRequired = col.id === 'question' || col.id === 'answer';
                 option.innerHTML = `
                     <input type="checkbox" 
                            id="col-${col.id}" 
                            ${col.visible ? 'checked' : ''} 
                            onchange="toggleColumn('${col.id}')">
                     <label for="col-${col.id}" style="cursor: pointer; flex: 1;">
-                        ${col.name}
+                        ${col.name} ${col.letter ? `(${col.letter})` : ''}
                     </label>
+                    ${!isRequired ? `<button onclick="event.stopPropagation(); deleteColumn('${col.id}')" style="background: #ef4444; color: white; border: none; border-radius: 3px; padding: 2px 6px; font-size: 10px; cursor: pointer;" title="Delete column">×</button>` : ''}
                 `;
                 container.appendChild(option);
             });
@@ -1480,49 +1833,98 @@
             }
         });
         
+        // Helper function to get cell for a specific column ID in a row
+        function getCellByColumnId(row, columnId) {
+            const visibleColumns = columns.filter(col => col.visible);
+            const columnIndex = visibleColumns.findIndex(col => col.id === columnId);
+            if (columnIndex < 0) {
+                console.warn(`[getCellByColumnId] Column ${columnId} not found in visible columns. Visible:`, visibleColumns.map(c => c.id));
+                return null;
+            }
+            // +1 because row number column is first
+            const cellIndex = columnIndex + 1;
+            if (!row.cells || !row.cells[cellIndex]) {
+                console.warn(`[getCellByColumnId] Row has ${row.cells ? row.cells.length : 0} cells, but need index ${cellIndex} for column ${columnId}`);
+                return null;
+            }
+            return row.cells[cellIndex];
+        }
+        
         // Render table with current columns
         function renderTable() {
             const tbody = document.getElementById('tbody');
             const rows = Array.from(tbody.querySelectorAll('tr'));
             
-            rows.forEach(row => {
+            rows.forEach((row, rowIndex) => {
                 const id = row.dataset.id;
                 const isFollowup = row.classList.contains('followup-row');
                 const parentId = row.dataset.parent;
                 const prefix = isFollowup ? '└─ ' : '';
                 
-                // Get existing data
-                const questionInput = row.querySelector('.q');
-                const questionValue = questionInput ? questionInput.value : '';
+                // Get or assign row number
+                let rowNumber = row.dataset.rowNumber;
+                if (!rowNumber) {
+                    rowNumber = (rowIndex + 1).toString();
+                    row.dataset.rowNumber = rowNumber;
+                }
+                
+                        // Get existing data
+                        const questionInput = row.querySelector('.q');
+                        // Get question from stored data if input is empty (handles orphaned answers)
+                        let questionValue = questionInput ? questionInput.value : '';
+                        if (!questionValue || questionValue.trim() === '') {
+                            const storedQ = qs.find(q => q.id == id);
+                            questionValue = storedQ ? (storedQ.question || '') : '';
+                        }
                 const answerDisplay = row.querySelector('.answer-display');
                 const answerHTML = answerDisplay ? answerDisplay.innerHTML : '<span class="empty-text">—</span>';
-                const sourceCell = row.cells[2];
+                const sourceCell = getCellByColumnId(row, 'source');
                 const sourceHTML = sourceCell ? sourceCell.innerHTML : '<span class="empty-text">—</span>';
-                const statusCell = row.cells[3];
+                const statusCell = getCellByColumnId(row, 'status');
                 const statusHTML = statusCell ? statusCell.innerHTML : '<span class="badge badge-ready">Ready</span>';
-                const dateCell = row.cells[4];
+                const dateCell = getCellByColumnId(row, 'date');
                 const dateHTML = dateCell ? dateCell.innerHTML : new Date().toLocaleDateString();
                 
                 // Store custom column data
                 const customData = {};
-                columns.forEach((col, idx) => {
-                    if (!col.default && row.cells[idx]) {
-                        customData[col.id] = row.cells[idx].innerHTML;
+                const visibleColumns = columns.filter(col => col.visible);
+                visibleColumns.forEach((col, idx) => {
+                    // Skip first cell (row number) when accessing existing cells
+                    const cellIndex = idx + 1; // +1 because row number is first
+                    if (!col.default && row.cells[cellIndex]) {
+                        customData[col.id] = row.cells[cellIndex].innerHTML;
                     }
                 });
                 
                 // Rebuild row with visible columns
                 row.innerHTML = '';
+                
+                // Add row number cell first
+                const rowNumTd = document.createElement('td');
+                rowNumTd.className = 'row-number-cell';
+                rowNumTd.innerHTML = `
+                    <span>${rowNumber}</span>
+                    <button class="row-delete-btn" onclick="event.stopPropagation(); deleteRow(${id})" title="Delete row">×</button>
+                `;
+                rowNumTd.dataset.rowNumber = rowNumber;
+                rowNumTd.title = `Row ${rowNumber}`;
+                row.appendChild(rowNumTd);
+                
+                // Add data cells
                 columns.filter(col => col.visible).forEach(col => {
                     const td = document.createElement('td');
                     
-                    if (col.id === 'question') {
+                        if (col.id === 'question') {
+                        // Escape quotes in questionValue to prevent XSS and syntax errors
+                        const safeQuestionValue = (questionValue || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                        // Use data attribute for ID to handle IDs with special characters
                         td.innerHTML = `
                             <input class="q ${isFollowup ? 'followup-input' : ''}" id="q${id}" 
-                                   value="${questionValue}"
+                                   data-row-id="${id}"
+                                   value="${safeQuestionValue}"
                                    placeholder="${prefix}Type and press Enter"
-                                   onkeypress="if(event.key=='Enter') ask(${id})">
-                            <button class="btn-followup" onclick="addQ(${id})">↪</button>
+                                   onkeypress="if(event.key=='Enter' || event.keyCode===13) { const rowId = this.getAttribute('data-row-id') || this.id.replace('q',''); ask(rowId); }">
+                            <button class="btn-followup" onclick="addQ('${id}')">↪</button>
                             <span id="thread${id}"></span>
                         `;
                     } else if (col.id === 'answer') {
@@ -2116,7 +2518,9 @@
                 console.error('[addQ] tbody element not found!');
                 return;
             }
-            const id = Date.now();
+            // Generate unique ID: timestamp + random component to avoid collisions
+            // Use hyphen instead of underscore to avoid issues in onclick handlers
+            const id = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
             const isFollowup = parentId != null;
             
             let row;
@@ -2137,6 +2541,22 @@
             row.dataset.id = id;
             const prefix = isFollowup ? '└─ ' : '';
             
+            // Calculate row number based on position in tbody
+            const existingRows = tbody.querySelectorAll('tr');
+            const rowNumber = (existingRows.length).toString();
+            row.dataset.rowNumber = rowNumber;
+            
+                // Add row number cell first
+                const rowNumTd = document.createElement('td');
+                rowNumTd.className = 'row-number-cell';
+                rowNumTd.innerHTML = `
+                    <span>${rowNumber}</span>
+                    <button class="row-delete-btn" onclick="event.stopPropagation(); deleteRow(${id})" title="Delete row">×</button>
+                `;
+                rowNumTd.dataset.rowNumber = rowNumber;
+                rowNumTd.title = `Row ${rowNumber}`;
+                row.appendChild(rowNumTd);
+            
             // Build row with visible columns
             columns.filter(col => col.visible).forEach(col => {
                 const td = document.createElement('td');
@@ -2145,8 +2565,9 @@
                     td.innerHTML = `
                         <input class="q ${isFollowup ? 'followup-input' : ''}" id="q${id}" 
                                placeholder="${prefix}Type and press Enter"
-                               onkeypress="if(event.key=='Enter') ask(${id})">
-                        <button class="btn-followup" onclick="addQ(${id})">↪</button>
+                               data-row-id="${id}"
+                               onkeypress="if(event.key=='Enter' || event.keyCode===13) { const rowId = this.getAttribute('data-row-id') || this.id.replace('q',''); ask(rowId); }">
+                        <button class="btn-followup" onclick="addQ('${id}')">↪</button>
                         <span id="thread${id}"></span>
                     `;
                 } else if (col.id === 'answer') {
@@ -2186,30 +2607,100 @@
         }
         
         async function ask(id) {
-            const input = document.getElementById('q' + id);
+            // Handle both numeric and string IDs (e.g., "1234567890-abc123def")
+            const idStr = String(id);
+            console.log(`[ask] Starting ask function for id ${idStr}`);
+            const input = document.getElementById('q' + idStr);
+            if (!input) {
+                console.error(`[ask] Could not find input element for id ${idStr}`);
+                return;
+            }
             const question = input.value.trim();
-            if (!question) return;
-            
-            if (!currentProjectId) {
-                alert('Please select a project first');
+            if (!question) {
+                console.log(`[ask] Question is empty for id ${idStr}`);
                 return;
             }
             
-            const row = document.querySelector(`[data-id="${id}"]`);
-            if (row && row.cells[3]) {
-                row.cells[3].innerHTML = '<span class="badge badge-processing">Processing...</span>';
+            if (!currentProjectId) {
+                alert('Please select a project first');
+                console.error(`[ask] No currentProjectId set`);
+                return;
             }
             
-            const answerDisplay = document.getElementById(`answerDisplay${id}`);
-            if (answerDisplay) {
-                answerDisplay.innerHTML = `
-                    <div class="answer-text" style="color: #9ca3af;">🤔 AI is thinking...</div>
-                    <button class="edit-answer-btn" onclick="editAnswer(${id})" title="Edit answer manually">✏️</button>
-                `;
+            // Find and store row reference immediately to prevent race conditions
+            // Handle both quoted and unquoted IDs in selector
+            let row = document.querySelector(`[data-id="${idStr}"]`) || document.querySelector(`[data-id='${idStr}']`);
+            if (!row) {
+                console.error(`[ask] Could not find row for id ${idStr}`);
+                input.disabled = false;
+                return;
             }
+            
+            // Validate row has correct ID
+            if (String(row.dataset.id) !== idStr) {
+                console.error(`[ask] Row ID mismatch: expected ${idStr}, got ${row.dataset.id}`);
+                input.disabled = false;
+                return;
+            }
+            
+            // Store row reference to protect against DOM changes during async operations
+            const rowRef = {
+                element: row,
+                id: idStr,
+                question: question
+            };
+            
+            console.log(`[ask] Found row for id ${idStr}, updating status and answer display`);
+            
+            // Update status
+            const statusCell = getCellByColumnId(row, 'status');
+            if (statusCell) {
+                statusCell.innerHTML = '<span class="badge badge-processing">Processing...</span>';
+                console.log(`[ask] Status updated to Processing`);
+            } else {
+                console.warn(`[ask] Could not find status cell for id ${id}`);
+            }
+            
+            // Update answer display
+            const answerCell = getCellByColumnId(row, 'answer');
+            if (!answerCell) {
+                console.error(`[ask] Could not find answer cell for id ${idStr}`);
+            } else {
+                let answerDisplay = answerCell.querySelector(`#answerDisplay${idStr}`) || 
+                                   answerCell.querySelector('.answer-display') ||
+                                   document.getElementById(`answerDisplay${idStr}`);
+                
+                if (!answerDisplay) {
+                    // Create the answer display structure if it doesn't exist
+                    console.log(`[ask] Creating answerDisplay structure for id ${idStr}`);
+                    answerCell.innerHTML = `
+                        <div class="answer-display" id="answerDisplay${idStr}">
+                            <div class="answer-text" style="color: #9ca3af;">🤔 AI is thinking...</div>
+                            <button class="edit-answer-btn" onclick="editAnswer('${idStr}')" title="Edit answer manually">✏️</button>
+                        </div>
+                        <div class="answer-edit" id="answerEdit${idStr}" style="display: none;">
+                            <textarea class="answer-editable" id="answerText${idStr}" placeholder="Enter manual answer..."></textarea>
+                            <div>
+                                <button class="save-answer-btn" onclick="saveAnswer('${idStr}')">Save</button>
+                                <button class="cancel-answer-btn" onclick="cancelEditAnswer('${idStr}')">Cancel</button>
+                            </div>
+                        </div>
+                    `;
+                    answerDisplay = answerCell.querySelector(`#answerDisplay${idStr}`);
+                    console.log(`[ask] Created answerDisplay for id ${idStr}`);
+                } else {
+                    answerDisplay.innerHTML = `
+                        <div class="answer-text" style="color: #9ca3af;">🤔 AI is thinking...</div>
+                        <button class="edit-answer-btn" onclick="editAnswer('${idStr}')" title="Edit answer manually">✏️</button>
+                    `;
+                    console.log(`[ask] Updated existing answerDisplay for id ${idStr} to "AI is thinking..."`);
+                }
+            }
+            
             input.disabled = true;
             
             try {
+                console.log(`[ask] Sending question to API: "${question}", project_id: ${currentProjectId}`);
                 const r = await fetch(`${API}/api/ask`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
@@ -2218,20 +2709,127 @@
                         project_id: currentProjectId
                     })
                 });
-                const data = await r.json();
                 
-                const answerDisplay = document.getElementById(`answerDisplay${id}`);
-                if (answerDisplay) {
-                    if (data.answer) {
-                        answerDisplay.innerHTML = `
-                            <div class="answer-text">${data.answer}</div>
-                            <button class="edit-answer-btn" onclick="editAnswer(${id})" title="Edit answer manually">✏️</button>
-                        `;
+                // Check if response is OK before parsing
+                if (!r.ok) {
+                    const errorData = await r.json().catch(() => ({ detail: `HTTP ${r.status}: ${r.statusText}` }));
+                    throw new Error(errorData.detail || `Server error: ${r.status}`);
+                }
+                
+                const data = await r.json();
+                console.log('[ask] Received response:', data);
+                
+                // Re-find and validate the row after async operation
+                let currentRow = document.querySelector(`[data-id="${idStr}"]`) || document.querySelector(`[data-id='${idStr}']`);
+                
+                // Verify row still exists and matches our stored reference
+                if (!currentRow) {
+                    console.error(`[ask] Could not find row for id ${idStr} after async operation`);
+                    input.disabled = false;
+                    return;
+                }
+                
+                // Validate row ID still matches and question still matches
+                if (String(currentRow.dataset.id) !== idStr) {
+                    console.error(`[ask] Row ID changed after async: expected ${idStr}, got ${currentRow.dataset.id}`);
+                    input.disabled = false;
+                    return;
+                }
+                
+                // Verify this is the correct row by checking the question input
+                const questionInput = currentRow.querySelector(`#q${idStr}`);
+                if (!questionInput || questionInput.value.trim() !== rowRef.question) {
+                    console.error(`[ask] Row question mismatch - answer may belong to different question`);
+                    // Try to find row by stored reference if it still exists
+                    if (rowRef.element && rowRef.element.parentNode && String(rowRef.element.dataset.id) === idStr) {
+                        currentRow = rowRef.element;
+                        console.log(`[ask] Using stored row reference instead`);
                     } else {
-                        answerDisplay.innerHTML = `
-                            <div class="answer-text" style="color: #ef4444;">No answer received</div>
-                            <button class="edit-answer-btn" onclick="editAnswer(${id})" title="Edit answer manually">✏️</button>
+                        input.disabled = false;
+                        return;
+                    }
+                }
+                
+                // Get the answer cell first, then find the answerDisplay within it
+                const answerCell = getCellByColumnId(currentRow, 'answer');
+                let answerDisplay = null;
+                
+                if (answerCell) {
+                    // First try to find by ID within the cell
+                    answerDisplay = answerCell.querySelector(`#answerDisplay${idStr}`);
+                    // Fallback: find by class
+                    if (!answerDisplay) {
+                        answerDisplay = answerCell.querySelector('.answer-display');
+                    }
+                    // Last resort: try document.getElementById
+                    if (!answerDisplay) {
+                        answerDisplay = document.getElementById(`answerDisplay${idStr}`);
+                    }
+                }
+                
+                if (answerDisplay) {
+                    console.log(`[ask] Found answerDisplay for id ${idStr}, updating with answer:`, data.answer ? data.answer.substring(0, 50) + '...' : 'empty');
+                    const answerText = data.answer && data.answer.trim() ? data.answer : 'No answer received';
+                    const answerColor = data.answer && data.answer.trim() ? '' : 'color: #ef4444;';
+                    
+                    // Escape HTML in answer text for safety
+                    const safeAnswerText = answerText.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                    
+                    // Update synchronously first
+                    answerDisplay.innerHTML = `
+                        <div class="answer-text" style="${answerColor}">${safeAnswerText}</div>
+                        <button class="edit-answer-btn" onclick="editAnswer('${idStr}')" title="Edit answer manually">✏️</button>
+                    `;
+                    
+                    // Force browser to repaint and make sure it's visible
+                    answerDisplay.style.visibility = 'visible';
+                    answerDisplay.style.display = '';
+                    void answerDisplay.offsetHeight;
+                    
+                    // Also update again in next frame to ensure visibility
+                    requestAnimationFrame(() => {
+                        if (answerDisplay && answerDisplay.parentElement) {
+                            answerDisplay.style.visibility = 'visible';
+                            void answerDisplay.offsetHeight;
+                        }
+                    });
+                } else {
+                    console.error(`[ask] Could not find answerDisplay element for id ${id} in answer cell`);
+                    // If we can't find it, try to create it or update the cell directly
+                    if (answerCell) {
+                        console.log(`[ask] Answer cell found, creating answerDisplay element directly`);
+                        const answerText = data.answer && data.answer.trim() ? data.answer : 'No answer received';
+                        const answerColor = data.answer && data.answer.trim() ? '' : 'color: #ef4444;';
+                        
+                        // Update synchronously
+                        answerCell.innerHTML = `
+                            <div class="answer-display" id="answerDisplay${id}">
+                                <div class="answer-text" style="${answerColor}">${answerText}</div>
+                                <button class="edit-answer-btn" onclick="editAnswer(${id})" title="Edit answer manually">✏️</button>
+                            </div>
+                            <div class="answer-edit" id="answerEdit${id}" style="display: none;">
+                                <textarea class="answer-editable" id="answerText${id}" placeholder="Enter manual answer..."></textarea>
+                                <div>
+                                    <button class="save-answer-btn" onclick="saveAnswer(${id})">Save</button>
+                                    <button class="cancel-answer-btn" onclick="cancelEditAnswer(${id})">Cancel</button>
+                                </div>
+                            </div>
                         `;
+                        
+                        // Make sure the cell is visible
+                        answerCell.style.visibility = 'visible';
+                        answerCell.style.display = '';
+                        void answerCell.offsetHeight;
+                        
+                        // Ensure it stays visible in next frame
+                        requestAnimationFrame(() => {
+                            if (answerCell && answerCell.parentElement) {
+                                answerCell.style.visibility = 'visible';
+                                void answerCell.offsetHeight;
+                            }
+                        });
+                    } else {
+                        console.error(`[ask] Could not find answer cell for id ${idStr}. Visible columns:`, columns.filter(c => c.visible).map(c => c.id));
                     }
                 }
                 
@@ -2250,42 +2848,124 @@
                             📄 ${s.filename}
                         </a>`
                     ).join('');
-                    row.cells[2].innerHTML = `<div class="source-list">${sourceHtml}</div>`;
+                    const sourceCell = getCellByColumnId(currentRow, 'source');
+                    if (sourceCell) {
+                        sourceCell.innerHTML = `<div class="source-list">${sourceHtml}</div>`;
+                    }
                 } else {
-                    row.cells[2].innerHTML = '<span class="empty-text">No sources</span>';
+                    const sourceCell = getCellByColumnId(currentRow, 'source');
+                    if (sourceCell) {
+                        sourceCell.innerHTML = '<span class="empty-text">No sources</span>';
+                    }
                 }
                 
-                if (row && row.cells[3]) {
-                    row.cells[3].innerHTML = '<span class="badge badge-done">Done</span>';
+                const statusCell = getCellByColumnId(currentRow, 'status');
+                if (statusCell) {
+                    statusCell.innerHTML = '<span class="badge badge-done">Done</span>';
                 }
-                if (row && row.cells[4]) {
-                    row.cells[4].innerHTML = `<span style="font-size: 0.813rem; color: #6b7280;">${new Date().toLocaleDateString()}</span>`;
+                const dateCell = getCellByColumnId(currentRow, 'date');
+                if (dateCell) {
+                    dateCell.innerHTML = `<span style="font-size: 0.813rem; color: #6b7280;">${new Date().toLocaleDateString()}</span>`;
                 }
                 
-                const q = qs.find(x => x.id == id);
+                // Get qa_id from response if available
+                const qaId = data.qa_id || null;
+                if (qaId && currentRow) {
+                    currentRow.dataset.qaId = qaId;
+                }
+                
+                let q = qs.find(x => String(x.id) === idStr);
                 if (q) {
                     q.question = question;
                     q.answer = data.answer;
+                    q.sources = data.sources || [];
+                    q.qa_id = qaId;
+                    if (!q.followups) {
+                        q.followups = [];
+                    }
+                } else {
+                    // Question not in qs, add it now
+                    q = {
+                        id: idStr,
+                        question: question,
+                        answer: data.answer,
+                        sources: data.sources || [],
+                        qa_id: qaId,
+                        followups: []
+                    };
+                    qs.push(q);
                 }
                 
                 input.disabled = false;
-                updateThread(id);
+                updateThread(idStr);
                 updateStats();
                 loadProjects(); // Reload project list to refresh question count
                 
+                // Only add new row if answer completed successfully and this wasn't a followup
                 if (!q || !q.parentId) {
-                    addQ();
+                    // Small delay to ensure DOM updates are complete
+                    setTimeout(() => {
+                        addQ();
+                    }, 100);
                 }
             } catch (e) {
-                const answerDisplay = document.getElementById(`answerDisplay${id}`);
+                console.error('[ask] Error:', e);
+                // Re-find and validate the row after error
+                let currentRow = document.querySelector(`[data-id="${idStr}"]`) || document.querySelector(`[data-id='${idStr}']`);
+                if (!currentRow) {
+                    // Try stored reference if available
+                    if (rowRef && rowRef.element && rowRef.element.parentNode && String(rowRef.element.dataset.id) === idStr) {
+                        currentRow = rowRef.element;
+                    } else {
+                        input.disabled = false;
+                        return;
+                    }
+                }
+                
+                // Validate row ID
+                if (String(currentRow.dataset.id) !== idStr) {
+                    console.error(`[ask] Row ID mismatch in error handler: expected ${idStr}, got ${currentRow.dataset.id}`);
+                    input.disabled = false;
+                    return;
+                }
+                
+                // Get the answer cell first, then find the answerDisplay within it
+                const answerCell = getCellByColumnId(currentRow, 'answer');
+                let answerDisplay = null;
+                
+                if (answerCell) {
+                    answerDisplay = answerCell.querySelector(`#answerDisplay${idStr}`) || 
+                                   answerCell.querySelector('.answer-display') ||
+                                   document.getElementById(`answerDisplay${idStr}`);
+                }
+                
                 if (answerDisplay) {
+                    const safeErrorMessage = String(e.message || 'Unknown error').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                     answerDisplay.innerHTML = `
-                        <div class="answer-text" style="color: #ef4444;">⚠️ Error: ${e.message}</div>
-                        <button class="edit-answer-btn" onclick="editAnswer(${id})" title="Edit answer manually">✏️</button>
+                        <div class="answer-text" style="color: #ef4444;">⚠️ Error: ${safeErrorMessage}</div>
+                        <button class="edit-answer-btn" onclick="editAnswer('${idStr}')" title="Edit answer manually">✏️</button>
+                    `;
+                    void answerDisplay.offsetHeight; // Force repaint
+                } else if (answerCell) {
+                    // Fallback: update cell directly
+                    answerCell.innerHTML = `
+                        <div class="answer-display" id="answerDisplay${id}">
+                            <div class="answer-text" style="color: #ef4444;">⚠️ Error: ${e.message}</div>
+                            <button class="edit-answer-btn" onclick="editAnswer(${id})" title="Edit answer manually">✏️</button>
+                        </div>
+                        <div class="answer-edit" id="answerEdit${id}" style="display: none;">
+                            <textarea class="answer-editable" id="answerText${id}" placeholder="Enter manual answer..."></textarea>
+                            <div>
+                                <button class="save-answer-btn" onclick="saveAnswer(${id})">Save</button>
+                                <button class="cancel-answer-btn" onclick="cancelEditAnswer(${id})">Cancel</button>
+                            </div>
+                        </div>
                     `;
                 }
-                if (row && row.cells[3]) {
-                    row.cells[3].innerHTML = '<span class="badge badge-ready" style="background: #fee2e2; color: #991b1b;">Error</span>';
+                
+                const statusCell = getCellByColumnId(currentRow, 'status');
+                if (statusCell) {
+                    statusCell.innerHTML = '<span class="badge badge-error">Error</span>';
                 }
                 input.disabled = false;
             }
@@ -2293,7 +2973,15 @@
         
         function updateThread(id) {
             const q = qs.find(x => x.id == id);
-            if (!q || q.followups.length == 0) return;
+            if (!q) return;  // Question not found
+            if (!q.followups) {
+                q.followups = [];  // Initialize if missing
+            }
+            if (q.followups.length == 0) {
+                const el = document.getElementById('thread' + id);
+                if (el) el.innerHTML = '';  // Clear thread button if no followups
+                return;
+            }
             
             const el = document.getElementById('thread' + id);
             if (!el) return;
@@ -2410,17 +3098,47 @@
                 
                 if (data.success && data.qa_list && data.qa_list.length > 0) {
                     // Add all Q&A entries from the server
-                    for (const qa of data.qa_list) {
-                        const id = qs.length > 0 ? Math.max(...qs.map(q => q.id)) + 1 : Date.now();
+                    for (let i = 0; i < data.qa_list.length; i++) {
+                        const qa = data.qa_list[i];
+                        // Generate unique ID, ensuring it's a valid number for legacy compatibility
+                        const id = qs.length > 0 ? Math.max(...qs.map(q => parseInt(q.id) || 0)) + 1 : Date.now();
                         const row = tbody.insertRow(-1);
                         row.dataset.id = id;
+                        // Store Q&A ID for deletion
+                        if (qa.id) {
+                            row.dataset.qaId = qa.id;
+                        }
+                        
+                        // Assign row number (use stored row_number if available, otherwise use index + 1)
+                        const rowNumber = (qa.row_number || (i + 1)).toString();
+                        row.dataset.rowNumber = rowNumber;
+                        
+                        // Add row number cell first
+                        const rowNumTd = document.createElement('td');
+                        rowNumTd.className = 'row-number-cell';
+                        rowNumTd.innerHTML = `
+                            <span>${rowNumber}</span>
+                            <button class="row-delete-btn" onclick="event.stopPropagation(); deleteRow(${id})" title="Delete row">×</button>
+                        `;
+                        rowNumTd.dataset.rowNumber = rowNumber;
+                        rowNumTd.title = `Row ${rowNumber}`;
+                        row.appendChild(rowNumTd);
                         
                         // Build row with visible columns
                         columns.filter(col => col.visible).forEach(col => {
                             const td = document.createElement('td');
                             
                             if (col.id === 'question') {
-                                td.innerHTML = `<div class="q-text">${qa.question}</div>`;
+                                const safeQuestion = (qa.question || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                                td.innerHTML = `
+                                    <input class="q" id="q${id}" 
+                                           data-row-id="${id}"
+                                           value="${safeQuestion}"
+                                           placeholder="Type and press Enter"
+                                           onkeypress="if(event.key=='Enter' || event.keyCode===13) { const rowId = this.getAttribute('data-row-id') || this.id.replace('q',''); ask(rowId); }">
+                                    <button class="btn-followup" onclick="addQ('${id}')">↪</button>
+                                    <span id="thread${id}"></span>
+                                `;
                             } else if (col.id === 'answer') {
                                 td.innerHTML = `
                                     <div class="answer-display" id="answerDisplay${id}">
@@ -2453,7 +3171,8 @@
                             id,
                             question: qa.question,
                             answer: qa.answer,
-                            sources: qa.sources || []
+                            sources: qa.sources || [],
+                            followups: []
                         });
                     }
                 }
@@ -2521,8 +3240,9 @@
             const editDiv = document.getElementById(`answerEdit${id}`);
             const textarea = document.getElementById(`answerText${id}`);
             
-            const currentAnswer = displayDiv.querySelector('.answer-text');
-            const currentText = currentAnswer ? currentAnswer.textContent : '';
+            const q = qs.find(x => x.id == id);
+            // Show formula if it exists, otherwise show computed value
+            const currentText = q && q.formula ? q.formula : (displayDiv.querySelector('.answer-text') ? displayDiv.querySelector('.answer-text').textContent : '');
             
             textarea.value = currentText;
             displayDiv.style.display = 'none';
@@ -2537,19 +3257,40 @@
             const newAnswer = textarea.value.trim();
             
             if (newAnswer) {
+                // Check if it's a formula
+                const isFormula = newAnswer.startsWith('=');
+                let displayValue = newAnswer;
+                
+                if (isFormula) {
+                    const result = parseFormula(newAnswer);
+                    displayValue = result.isFormula ? result.value : newAnswer;
+                }
+                
                 displayDiv.innerHTML = `
-                    <div class="answer-text">${newAnswer}</div>
+                    <div class="answer-text">${displayValue}</div>
                     <button class="edit-answer-btn" onclick="editAnswer(${id})" title="Edit answer manually">✏️</button>
                 `;
                 
                 const q = qs.find(x => x.id == id);
                 if (q) {
-                    q.answer = newAnswer;
+                    if (isFormula) {
+                        q.formula = newAnswer;
+                        q.answer = displayValue;
+                    } else {
+                        q.answer = newAnswer;
+                        q.formula = null;
+                    }
                     q.manual = true;
                 }
                 
                 editDiv.style.display = 'none';
                 displayDiv.style.display = 'block';
+                
+                // Recalculate all formulas if this was a formula
+                if (isFormula) {
+                    recalculateAllFormulas();
+                }
+                
                 updateStats();
             } else {
                 alert('Please enter an answer');
@@ -2561,6 +3302,80 @@
             const editDiv = document.getElementById(`answerEdit${id}`);
             editDiv.style.display = 'none';
             displayDiv.style.display = 'block';
+        }
+        
+        // Delete row functionality
+        async function deleteRow(rowId) {
+            const row = document.querySelector(`[data-id="${rowId}"]`);
+            if (!row) {
+                console.error(`[deleteRow] Could not find row with id ${rowId}`);
+                return;
+            }
+            
+            if (!confirm('Are you sure you want to delete this row? This action cannot be undone.')) {
+                return;
+            }
+            
+            // Get Q&A ID from the row data
+            const qaId = row.dataset.qaId || null;
+            
+            // Remove from DOM first
+            row.remove();
+            
+            // Remove from qs array
+            qs = qs.filter(q => q.id != rowId);
+            
+            // Renumber remaining rows
+            renumberRows();
+            
+            // Delete from backend if qaId exists
+            if (qaId && currentProjectId) {
+                try {
+                    const r = await fetch(`${API}/api/qa/${qaId}?project_id=${currentProjectId}`, {
+                        method: 'DELETE'
+                    });
+                    if (!r.ok) {
+                        console.error(`[deleteRow] Failed to delete Q&A from backend: ${r.status}`);
+                    }
+                } catch (e) {
+                    console.error(`[deleteRow] Error deleting Q&A from backend:`, e);
+                }
+            }
+            
+            updateStats();
+        }
+        
+        // Delete column functionality
+        function deleteColumn(columnId) {
+            const col = columns.find(c => c.id === columnId);
+            if (!col) {
+                console.error(`[deleteColumn] Column ${columnId} not found`);
+                return;
+            }
+            
+            // Don't allow deleting default columns (question, answer)
+            if (col.id === 'question' || col.id === 'answer') {
+                alert('Cannot delete required columns (Question and Answer)');
+                return;
+            }
+            
+            if (!confirm(`Are you sure you want to delete column "${col.name}"? This action cannot be undone.`)) {
+                return;
+            }
+            
+            // Remove column from array
+            columns = columns.filter(c => c.id !== columnId);
+            
+            // Reassign column letters
+            assignColumnLetters();
+            
+            // Re-render table
+            renderTableHeader();
+            renderTable();
+            renderColumnOptions();
+            
+            // Recalculate formulas as column references may have changed
+            recalculateAllFormulas();
         }
         
         // Close modal when clicking outside
