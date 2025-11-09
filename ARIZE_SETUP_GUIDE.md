@@ -95,12 +95,46 @@ PHOENIX_LOCAL=false
 ARIZE_API_KEY=your_actual_api_key
 ARIZE_SPACE_ID=your_space_id
 PHOENIX_COLLECTOR_ENDPOINT=https://app.phoenix.arize.com
+
+# Phoenix eval logging (new)
+PHOENIX_API_URL=https://api.phoenix.arize.com/v1
+PHOENIX_API_KEY=${ARIZE_API_KEY}
+PHOENIX_PROJECT=diligence-evals
 ```
 
 4. **Restart server**:
 ```bash
 python3 backend/main.py
 ```
+
+## 🧪 Streaming Evaluation Runs to Phoenix
+
+Use the updated `run_evals.py` script to send automated evaluation results directly to Phoenix:
+
+1. **Install dependencies** (already included in `requirements.txt`):
+   ```bash
+   pip install arize-phoenix
+   ```
+
+2. **Export credentials** (local example):
+   ```bash
+   export PHOENIX_API_URL=https://api.phoenix.arize.com/v1
+   export PHOENIX_API_KEY=your_workspace_api_key
+   export PHOENIX_PROJECT=diligence-evals
+   ```
+
+3. **Run evaluations**:
+   ```bash
+   python run_evals.py --base-url https://diligence-cloud.onrender.com
+   ```
+
+Each evaluation logs:
+- question, project, category, difficulty
+- latency, pass/fail status, errors
+- term/source/criteria scores and missing items
+- agents used and number of sources
+
+You can filter or trend these records in Phoenix to monitor quality regressions over time.
 
 ## 📊 What You Can Monitor
 

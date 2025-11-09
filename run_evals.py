@@ -5,6 +5,7 @@ Runs test cases and generates comprehensive evaluation reports
 """
 
 import json
+import os
 import time
 import requests
 from datetime import datetime
@@ -14,21 +15,71 @@ import statistics
 
 from eval_dataset import get_all_test_cases, get_dataset_stats
 
-API_BASE = "http://localhost:8002"
+try:
+    import phoenix as px
+    from phoenix.trace.span_evaluations import DocumentEvaluations
+except ImportError:  # pragma: no cover - optional dependency
+    px = None
+    DocumentEvaluations = None
+
+
+def create_phoenix_client() -> tuple[Optional["px.Client"], Optional[str]]:
+    """Initialize Phoenix client if configuration is available."""
+    if px is None:
+        return None, None
+
+    api_url = os.getenv("PHOENIX_API_URL")
+    api_key = os.getenv("PHOENIX_API_KEY")
+
+    if not api_url or not api_key:
+        return None, None
+
+    api_url = api_url.rstrip("/")
+    if api_url.lower().endswith("/v1"):
+        api_url = api_url[:-3]
+
+    project_name = os.getenv("PHOENIX_PROJECT", "diligence-evals")
+
+    try:
+        print(f"🔗 Connecting to Arize Phoenix project '{project_name}'...")
+        client = px.Client(
+            endpoint=api_url,
+            api_key=api_key,
+            warn_if_server_not_running=False,
+        )
+        print("✅ Phoenix logging enabled for evaluation runs.")
+        return client, project_name
+    except Exception as exc:  # pragma: no cover - best effort logging
+        print(f"⚠️  Failed to initialize Phoenix client: {exc}")
+        return None, None
+
+
+def get_default_api_base() -> str:
+    """Return API base URL, preferring CLI/env overrides."""
+    return os.getenv("DILIGENCE_API_BASE", "http://localhost:8002")
 
 class DiligenceCloudEvaluator:
     """Run and evaluate Diligence Cloud Q&A system"""
     
-    def __init__(self, test_cases: List[Dict]):
+    def __init__(
+        self,
+        test_cases: List[Dict],
+        base_url: Optional[str] = None,
+        phoenix_client: Optional["px.Client"] = None,
+        phoenix_eval_name: Optional[str] = None,
+    ):
         self.test_cases = test_cases
         self.results = []
         self.start_time = None
         self.end_time = None
+        self.base_url = (base_url or get_default_api_base()).rstrip("/")
+        self.phoenix_client = phoenix_client
+        self.phoenix_eval_name = phoenix_eval_name or "diligence-evals"
     
     def check_server(self) -> bool:
         """Check if server is running"""
         try:
-            response = requests.get(f"{API_BASE}/health", timeout=5)
+            response = requests.get(f"{self.base_url}/health", timeout=5)
             return response.status_code == 200
         except requests.exceptions.RequestException:
             return False
@@ -36,7 +87,7 @@ class DiligenceCloudEvaluator:
     def get_project_id(self, project_name: str) -> Optional[str]:
         """Get project ID from name"""
         try:
-            response = requests.get(f"{API_BASE}/api/projects")
+            response = requests.get(f"{self.base_url}/api/projects")
             if response.status_code == 200:
                 projects = response.json().get("projects", [])
                 for project in projects:
@@ -58,7 +109,7 @@ class DiligenceCloudEvaluator:
         try:
             # Call API
             response = requests.post(
-                f"{API_BASE}/api/ask",
+                f"{self.base_url}/api/ask",
                 json={
                     "question": test_case["question"],
                     "project_id": project_id,
@@ -123,10 +174,11 @@ class DiligenceCloudEvaluator:
             status_icon = "✅" if result["passed"] else "❌"
             print(f"    {status_icon} {latency:.2f}s | {result['answer_length']} chars | {result['num_sources']} sources")
             
+            self._log_to_phoenix(result)
             return result
             
         except requests.exceptions.Timeout:
-            return {
+            result = {
                 **test_case,
                 "status": "timeout",
                 "error": "Request timed out after 120s",
@@ -134,8 +186,10 @@ class DiligenceCloudEvaluator:
                 "timestamp": datetime.now().isoformat(),
                 "passed": False,
             }
+            self._log_to_phoenix(result)
+            return result
         except Exception as e:
-            return {
+            result = {
                 **test_case,
                 "status": "error",
                 "error": str(e),
@@ -143,6 +197,8 @@ class DiligenceCloudEvaluator:
                 "timestamp": datetime.now().isoformat(),
                 "passed": False,
             }
+            self._log_to_phoenix(result)
+            return result
     
     def _extract_agents_used(self, answer_data: Dict) -> List[str]:
         """Extract which agents were used from response"""
@@ -248,6 +304,62 @@ class DiligenceCloudEvaluator:
             "found": found,
             "missing": missing,
         }
+
+    def _log_to_phoenix(self, result: Dict):
+        """Send evaluation result to Phoenix for observability."""
+        if not self.phoenix_client or DocumentEvaluations is None:
+            return
+
+        try:
+            import pandas as pd  # Local import to keep dependency optional
+
+            span_id = str(result.get("id") or f"test_{len(self.results)}")
+            df = pd.DataFrame(
+                [
+                    {
+                        "span_id": span_id,
+                        "position": 0,
+                        "score": float(1.0 if result.get("passed") else 0.0),
+                        "label": "pass" if result.get("passed") else "fail",
+                        "question": result.get("question"),
+                        "project": result.get("project_name"),
+                        "category": result.get("category"),
+                        "difficulty": result.get("difficulty"),
+                        "status": result.get("status"),
+                        "latency_sec": result.get("latency"),
+                        "timestamp": result.get("timestamp"),
+                        "answer_length": result.get("answer_length"),
+                        "num_sources": result.get("num_sources"),
+                        "term_score": self._safe_nested(result, "term_coverage", "score"),
+                        "source_score": self._safe_nested(result, "source_attribution", "score"),
+                        "criteria_score": self._safe_nested(result, "criteria_met", "score"),
+                        "term_found": self._safe_nested(result, "term_coverage", "found"),
+                        "term_missing": self._safe_nested(result, "term_coverage", "missing"),
+                        "sources_found": self._safe_nested(result, "source_attribution", "found"),
+                        "sources_missing": self._safe_nested(result, "source_attribution", "missing"),
+                        "criteria_met": self._safe_nested(result, "criteria_met", "met"),
+                        "criteria_not_met": self._safe_nested(result, "criteria_met", "not_met"),
+                        "agents_used": result.get("agents_used"),
+                        "error_message": result.get("error"),
+                    }
+                ]
+            ).set_index(["span_id", "position"])
+
+            evaluations = DocumentEvaluations(
+                eval_name=self.phoenix_eval_name,
+                dataframe=df,
+            )
+            self.phoenix_client.log_evaluations(evaluations)
+        except Exception as exc:  # pragma: no cover - logging should not break evals
+            print(f"⚠️  Failed to log evaluation '{result.get('id')}' to Phoenix: {exc}")
+
+    @staticmethod
+    def _safe_nested(data: Dict, key: str, nested_key: str):
+        """Helper to safely pull nested values."""
+        nested = data.get(key, {})
+        if isinstance(nested, dict):
+            return nested.get(nested_key)
+        return None
     
     def _check_criteria(self, answer: str, sources: List, criteria: Dict) -> Dict:
         """Check custom evaluation criteria"""
@@ -472,7 +584,8 @@ class DiligenceCloudEvaluator:
         for cat, results in sorted(by_category.items()):
             cat_passed = sum(1 for r in results if r.get("passed", False))
             cat_total = len(results)
-            cat_latency = statistics.mean(r.get("latency", 0) for r in results if r.get("status") == "success")
+            successful_latencies = [r.get("latency", 0) for r in results if r.get("status") == "success"]
+            cat_latency = statistics.mean(successful_latencies) if successful_latencies else 0.0
             report += f"  {cat.capitalize():15} {cat_total:3} tests | {cat_passed:3} passed ({cat_passed/cat_total*100:.0f}%) | {cat_latency:.2f}s avg\n"
         
         report += f"\n📊 BY DIFFICULTY:\n"
@@ -548,6 +661,7 @@ def main():
     parser.add_argument("--category", help="Run only specific category (financial, legal, operational, strategic)")
     parser.add_argument("--limit", type=int, help="Limit number of tests to run")
     parser.add_argument("--output", default="eval_results.json", help="Output file for results")
+    parser.add_argument("--base-url", help="Override API base URL (default: env DILIGENCE_API_BASE or http://localhost:8002)")
     
     args = parser.parse_args()
     
@@ -560,13 +674,21 @@ def main():
     # Load test cases
     test_cases = get_all_test_cases()
     
+    # Initialize Phoenix client
+    phoenix_client, phoenix_eval_name = create_phoenix_client()
+
     # Create evaluator
-    evaluator = DiligenceCloudEvaluator(test_cases)
+    evaluator = DiligenceCloudEvaluator(
+        test_cases,
+        base_url=args.base_url or get_default_api_base(),
+        phoenix_client=phoenix_client,
+        phoenix_eval_name=phoenix_eval_name,
+    )
     
     # Check server
     print("\n🔍 Checking server status...")
     if not evaluator.check_server():
-        print("❌ Server is not running at", API_BASE)
+        print("❌ Server is not running at", evaluator.base_url)
         print("   Please start the server first: python3 backend/main.py")
         return
     

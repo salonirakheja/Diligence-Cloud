@@ -4,32 +4,71 @@ Import generated test data into Diligence Cloud
 Uploads projects, documents, and Q&A data via API
 """
 
+import argparse
 import json
-import requests
+import mimetypes
 import time
 from pathlib import Path
 
-API_BASE = "http://localhost:8002"
+import requests
 
-def create_project(name, description=""):
-    """Create a new project"""
+DEFAULT_API_BASE = "http://localhost:8002"
+API_BASE = DEFAULT_API_BASE
+
+def _ensure_trailing_slash(url: str) -> str:
+    return url[:-1] if url.endswith("/") else url
+
+def get_existing_projects(api_base: str):
+    """Return list of existing projects from the server"""
+    response = requests.get(f"{api_base}/api/projects", timeout=30)
+    if response.status_code != 200:
+        raise RuntimeError(f"Failed to list projects: {response.status_code} {response.text}")
+    return response.json().get("projects", [])
+
+def create_or_get_project(api_base: str, name: str, description: str = ""):
+    """Create project if it doesn't already exist"""
+    projects = get_existing_projects(api_base)
+    for proj in projects:
+        if proj.get("name") == name:
+            print(f"   ↪ Project already exists: {proj['id']} ({name})")
+            return proj
+
     response = requests.post(
-        f"{API_BASE}/api/projects",
-        json={"name": name, "description": description}
+        f"{api_base}/api/projects",
+        json={"name": name, "description": description},
+        timeout=30,
     )
-    if response.status_code == 200:
-        return response.json()["project"]
-    else:
-        print(f"❌ Failed to create project: {name}")
-        return None
+    if response.status_code != 200:
+        raise RuntimeError(f"Failed to create project '{name}': {response.status_code} {response.text}")
+    project = response.json()["project"]
+    print(f"   ✓ Project created: {project['id']}")
+    return project
 
-def upload_document(project_id, doc_name, content):
-    """Upload a document to a project"""
-    # Note: This is a simplified version
-    # In production, you'd want to create actual file objects
-    print(f"   📄 Would upload: {doc_name} ({len(content)} bytes)")
-    # Actual implementation would use multipart/form-data
-    # with file upload to /api/upload endpoint
+def upload_document(api_base: str, project_id: str, doc_path: Path):
+    """Upload a document file to the specified project"""
+    mime_type, _ = mimetypes.guess_type(doc_path.name)
+    if mime_type is None:
+        # default to plain text
+        mime_type = "text/plain"
+
+    with open(doc_path, "rb") as f:
+        files = {
+            "file": (doc_path.name, f, mime_type),
+        }
+        response = requests.post(
+            f"{api_base}/api/upload",
+            files=files,
+            params={"project_id": project_id},
+            timeout=120,
+        )
+
+    if response.status_code != 200:
+        raise RuntimeError(
+            f"      ❌ Upload failed for {doc_path.name}: {response.status_code} {response.text}"
+        )
+
+    payload = response.json()
+    print(f"      📄 Uploaded {doc_path.name} ({payload.get('size', 0)} bytes)")
 
 def import_project_data(project_file):
     """Import a single project from JSON file"""
@@ -40,7 +79,8 @@ def import_project_data(project_file):
     print(f"\n📁 Importing: {project_info['name']}")
     
     # Create project
-    project = create_project(
+    project = create_or_get_project(
+        API_BASE,
         name=project_info["name"],
         description=f"{project_info['industry']} | Revenue: {project_info['revenue']} | Employees: {project_info['employees']}"
     )
@@ -49,16 +89,15 @@ def import_project_data(project_file):
         return
     
     project_id = project["id"]
-    print(f"   ✓ Project created: {project_id}")
     
     # Import documents
     print(f"   📚 Documents: {len(data['documents'])}")
     doc_dir = project_file.parent / project_info["id"] / "documents"
     if doc_dir.exists():
         for doc_file in doc_dir.glob("*.txt"):
-            with open(doc_file, 'r') as f:
-                content = f.read()
-            upload_document(project_id, doc_file.stem, content)
+            upload_document(API_BASE, project_id, doc_file)
+    else:
+        print("      ⚠️ Document directory not found:", doc_dir)
     
     # Import Q&A pairs
     print(f"   💬 Q&A pairs: {len(data['qa_pairs'])}")
@@ -69,6 +108,16 @@ def import_project_data(project_file):
 
 def main():
     """Import all generated data"""
+    parser = argparse.ArgumentParser(description="Import generated diligence data via API")
+    parser.add_argument(
+        "--base-url",
+        help=f"API base URL (default: {DEFAULT_API_BASE})",
+        default=DEFAULT_API_BASE,
+    )
+    args = parser.parse_args()
+
+    global API_BASE
+    API_BASE = _ensure_trailing_slash(args.base_url.rstrip("/"))
     print("🚀 Importing Generated Data into Diligence Cloud")
     print("=" * 70)
     

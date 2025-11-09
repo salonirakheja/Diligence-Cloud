@@ -31,9 +31,13 @@ Even though `render.yaml` exists, you need to manually configure these settings:
 ### Step 3: Add Environment Variables
 In the Render dashboard → Environment section, add:
 - **OPENAI_API_KEY**: `your-openai-api-key-here`
+- **PHOENIX_API_URL**: `https://api.phoenix.arize.com/v1` *(for Arize Cloud logging)*
+- **PHOENIX_API_KEY**: `your-phoenix-workspace-api-key`
+- **PHOENIX_PROJECT**: `diligence-evals` *(or any name you prefer)*
 - Optional:
   - **OPENAI_MODEL**: `gpt-4o-mini` (default)
   - **OPENROUTER_API_KEY**: If using OpenRouter instead
+  - **PHOENIX_LOCAL** / **ARIZE_API_KEY** / **ARIZE_SPACE_ID**: if you also run tracing via `backend/main.py`
 
 ### Step 4: Add Persistent Disk (Important!)
 1. In the Render dashboard, go to **"Disks"**
