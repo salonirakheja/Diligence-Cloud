@@ -857,6 +857,61 @@
             line-height: 1.6;
         }
         
+        .doc-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        
+        .doc-action-btn {
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #eef2ff;
+            color: #4338ca;
+        }
+        
+        .doc-action-btn:hover {
+            background: #e0e7ff;
+            border-color: #c7d2fe;
+        }
+        
+        .doc-delete-btn {
+            background: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+        }
+        
+        .doc-delete-btn:hover {
+            background: #fee2e2;
+            border-color: #fca5a5;
+            color: #7f1d1d;
+        }
+        
+        .doc-inline-delete {
+            margin-left: auto;
+            background: transparent;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 0.875rem;
+            padding: 2px 4px;
+            opacity: 0.6;
+            transition: all 0.2s;
+        }
+        
+        .sub-item:hover .doc-inline-delete {
+            opacity: 1;
+        }
+        
+        .doc-inline-delete:hover {
+            color: #991b1b;
+        }
+        
         /* Modal */
         .modal {
             display: none;
@@ -2091,12 +2146,20 @@
                 const subContainer = document.getElementById(`sub-${projectId}`);
                 if (subContainer) {
                     if (documents.length > 0) {
-                        subContainer.innerHTML = documents.map(doc => `
-                            <div class="sub-item">
-                                <span class="sub-icon">📄</span>
-                                <span class="sub-name">${doc.filename}</span>
-                            </div>
-                        `).join('');
+                        subContainer.innerHTML = documents.map(doc => {
+                            const displayName = doc.filename || 'Untitled Document';
+                            const safeNameForJs = displayName
+                                .replace(/\\/g, '\\\\')
+                                .replace(/'/g, "\\'")
+                                .replace(/`/g, '\\`');
+                            return `
+                                <div class="sub-item">
+                                    <span class="sub-icon">📄</span>
+                                    <span class="sub-name">${displayName}</span>
+                                    <button class="doc-inline-delete" onclick="event.stopPropagation(); deleteDocument('${doc.id}', '${safeNameForJs}')">🗑️</button>
+                                </div>
+                            `;
+                        }).join('');
                         subContainer.classList.add('visible');
                     } else {
                         subContainer.innerHTML = '';
@@ -3055,24 +3118,72 @@
                 const list = document.getElementById('docList');
                 
                 if (data.documents && data.documents.length > 0) {
-                    list.innerHTML = data.documents.map(d => `
-                        <div class="doc-card">
-                            <div class="doc-name">
-                                <span>📄</span>
-                                <span>${d.filename}</span>
+                    list.innerHTML = data.documents.map(d => {
+                        const displayName = d.filename || 'Untitled Document';
+                        const safeNameForJs = displayName
+                            .replace(/\\/g, '\\\\')
+                            .replace(/'/g, "\\'")
+                            .replace(/`/g, '\\`');
+                        const uploadedDate = d.upload_date ? new Date(d.upload_date).toLocaleDateString() : 'N/A';
+                        return `
+                            <div class="doc-card">
+                                <div class="doc-name">
+                                    <span>📄</span>
+                                    <span>${displayName}</span>
+                                </div>
+                                <div class="doc-meta">
+                                    <div>📊 Pages: <strong>${d.pages || 'N/A'}</strong></div>
+                                    <div>📅 Uploaded: <strong>${uploadedDate}</strong></div>
+                                    <div>💾 Size: <strong>${formatSize(d.size)}</strong></div>
+                                </div>
+                                <div class="doc-actions">
+                                    <button class="doc-action-btn" onclick="openSourceById('${d.id}')">View</button>
+                                    <button class="doc-action-btn doc-delete-btn" onclick="deleteDocument('${d.id}', '${safeNameForJs}')">Delete</button>
+                                </div>
                             </div>
-                            <div class="doc-meta">
-                                <div>📊 Pages: <strong>${d.pages || 'N/A'}</strong></div>
-                                <div>📅 Uploaded: <strong>${new Date(d.upload_date).toLocaleDateString()}</strong></div>
-                                <div>💾 Size: <strong>${formatSize(d.size)}</strong></div>
-                            </div>
-                        </div>
-                    `).join('');
+                        `;
+                    }).join('');
                 } else {
                     list.innerHTML = '<p style="color: #9ca3af; text-align: center; padding: 30px;">No documents uploaded yet. Upload your first document above!</p>';
                 }
             } catch (e) {
                 console.error(e);
+            }
+        }
+        
+        function openSourceById(docId) {
+            if (!docId) return;
+            const viewUrl = `${API}/api/view/${docId}`;
+            window.open(viewUrl, '_blank');
+        }
+        
+        async function deleteDocument(docId, filename) {
+            if (!docId) return;
+            const name = filename || 'this document';
+            const confirmed = confirm(`Are you sure you want to delete "${name}"?\n\nThis action cannot be undone.`);
+            if (!confirmed) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API}/api/documents/${docId}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json().catch(() => ({}));
+                
+                if (response.ok && result.success) {
+                    alert(`✓ Document deleted: ${name}`);
+                    await loadDocs();
+                    if (currentProjectId) {
+                        await loadProjectDocuments(currentProjectId);
+                    }
+                } else {
+                    const message = result.detail || 'Failed to delete document.';
+                    alert(message);
+                }
+            } catch (error) {
+                console.error('Failed to delete document:', error);
+                alert('Error deleting document. Please try again.');
             }
         }
         

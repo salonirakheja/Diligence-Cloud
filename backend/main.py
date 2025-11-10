@@ -539,10 +539,14 @@ async def delete_document(doc_id: str):
     try:
         # Get document metadata to find file path and project
         doc = vector_store.get_document(doc_id)
-        project_id = doc.get('project_id') if doc else None
+        if not doc:
+            raise HTTPException(status_code=404, detail="Document not found")
+        project_id = doc.get('project_id')
         
         # Delete from vector store
-        vector_store.delete_document(doc_id)
+        deleted = vector_store.delete_document(doc_id)
+        if not deleted:
+            raise HTTPException(status_code=500, detail="Failed to delete document from vector store")
         
         # Delete physical file if exists
         if doc and 'file_path' in doc:
