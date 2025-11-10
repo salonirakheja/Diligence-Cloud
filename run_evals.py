@@ -131,6 +131,10 @@ class DiligenceCloudEvaluator:
             
             answer_data = response.json()
             
+            telemetry = answer_data.get("telemetry") or {}
+            span_id = telemetry.get("span_id") or answer_data.get("span_id")
+            trace_id = telemetry.get("trace_id") or answer_data.get("trace_id")
+
             # Evaluate response
             result = {
                 **test_case,
@@ -143,6 +147,8 @@ class DiligenceCloudEvaluator:
                 "sources": answer_data.get("sources", []),
                 "confidence": answer_data.get("confidence", "unknown"),
                 "agents_used": self._extract_agents_used(answer_data),
+                "span_id": span_id,
+                "trace_id": trace_id,
                 
                 # Metrics
                 "answer_length": len(answer_data.get("answer", "")),
@@ -313,7 +319,7 @@ class DiligenceCloudEvaluator:
         try:
             import pandas as pd  # Local import to keep dependency optional
 
-            span_id = str(result.get("id") or f"test_{len(self.results)}")
+            span_id = result.get("span_id") or result.get("id") or f"test_{len(self.results)}"
             df = pd.DataFrame(
                 [
                     {
@@ -341,6 +347,7 @@ class DiligenceCloudEvaluator:
                         "criteria_not_met": self._safe_nested(result, "criteria_met", "not_met"),
                         "agents_used": result.get("agents_used"),
                         "error_message": result.get("error"),
+                        "trace_id": result.get("trace_id"),
                     }
                 ]
             ).set_index(["span_id", "position"])

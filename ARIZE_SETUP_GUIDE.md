@@ -12,100 +12,57 @@ Arize Phoenix observability has been successfully integrated into your Autonomou
 - `opentelemetry-sdk>=1.20.0` - OpenTelemetry SDK
 - `opentelemetry-exporter-otlp>=1.20.0` - OTLP exporter
 
-### 2. Configuration Files Created
+### 2. Telemetry Bootstrap
 
-#### `backend/arize_config.py`
-- Centralized observability configuration
-- Supports both local Phoenix and Arize Cloud
-- Automatic OpenAI instrumentation
-- Custom span creation utilities
-
-#### `.env` Configuration
-Added Phoenix configuration options:
-```env
-# Run Phoenix locally (enabled by default for development)
-PHOENIX_LOCAL=true
-PHOENIX_PORT=6006
-
-# For production, use Arize Cloud (commented out)
-# PHOENIX_LOCAL=false
-# ARIZE_API_KEY=your_arize_api_key_here
-# ARIZE_SPACE_ID=your_space_id_here
-# PHOENIX_COLLECTOR_ENDPOINT=https://app.phoenix.arize.com
-```
-
-### 3. Instrumentation Added
+#### `backend/telemetry.py`
+- Centralizes Phoenix/OpenTelemetry wiring
+- Configures the OTLP/HTTP exporter with Phoenix workspace credentials
+- Registers `openinference` instrumentation so OpenAI calls appear as child spans
 
 #### `backend/main.py`
-- Arize initialization on startup
-- Request-level tracing for `/api/ask` endpoint
-- Automatic metrics collection:
-  - Processing time
-  - Response confidence
-  - Source count
-  - Error tracking
+- Loads environment variables and calls `init_tracing()` on startup
+- Creates request spans for `/api/ask`, attaches question metadata, and returns span identifiers to clients for evaluation logging
 
-#### `backend/multi_agent_system.py`
-- **BaseAgent**: Instrumented all LLM calls with:
-  - Agent name and model
-  - Prompt lengths
-  - Response latency
-  - Token usage (prompt, completion, total)
-  - Error tracking
+### 3. Required Environment Variables
 
-- **OrchestratorAgent**: Added orchestration tracing with:
-  - Question classification
-  - Agent coordination
-  - Multi-agent workflow tracking
-  - Final confidence scores
+Configure the following variables wherever the FastAPI service runs (Render, local `.env`, GitHub Actions, etc.):
 
-## 🚀 How to Use
-
-### Option 1: Local Phoenix (Development - Currently Active)
-
-Phoenix is running locally and accessible at:
-**http://localhost:6006**
-
-This is the default mode and requires no additional setup. Just start your server:
-
-```bash
-python3 backend/main.py
-```
-
-Phoenix will automatically launch and you'll see:
-```
-🔍 Starting Phoenix locally...
-✅ Phoenix UI available at: http://localhost:6006
-✅ Arize Phoenix observability initialized successfully!
-```
-
-### Option 2: Arize Cloud (Production)
-
-For production deployment:
-
-1. **Sign up for Arize Phoenix**: https://phoenix.arize.com/
-
-2. **Get your credentials**:
-   - API Key: Settings → API Keys
-   - Space ID: Workspace settings
-
-3. **Update `.env`**:
 ```env
-PHOENIX_LOCAL=false
-ARIZE_API_KEY=your_actual_api_key
-ARIZE_SPACE_ID=your_space_id
-PHOENIX_COLLECTOR_ENDPOINT=https://app.phoenix.arize.com
+# Phoenix workspace REST base (usually https://app.phoenix.arize.com/s/<workspace>/v1)
+PHOENIX_API_URL=https://app.phoenix.arize.com/s/<workspace>/v1
 
-# Phoenix eval logging (new)
-PHOENIX_API_URL=https://api.phoenix.arize.com/v1
-PHOENIX_API_KEY=${ARIZE_API_KEY}
-PHOENIX_PROJECT=diligence-evals
+# User API key generated under Settings → API Keys → User Keys
+PHOENIX_API_KEY=your_user_key_here
+
+# Logical project name used to group traces/datasets inside Phoenix
+PHOENIX_PROJECT=Diligence-Cloud
+
+# Optional: override service name in span resources
+# PHOENIX_SERVICE_NAME=diligence-cloud-backend
+
+# Optional: override traces endpoint directly (defaults to `${PHOENIX_API_URL}/traces`)
+# PHOENIX_TRACES_ENDPOINT=https://app.phoenix.arize.com/s/<workspace>/v1/traces
 ```
 
-4. **Restart server**:
-```bash
-python3 backend/main.py
-```
+> **Heads up:** The instrumentation automatically sends OTLP traces over HTTPS with the proper `Authorization: Bearer <PHOENIX_API_KEY>` header. No local Phoenix instance is required—the backend now streams spans directly to the hosted workspace.
+
+## 🚀 End-to-End Workflow
+
+1. **Deploy / run the FastAPI backend** with the environment variables above. The service emits:
+   - A root span for each `/api/ask` request (`api.ask_question`)
+   - Child spans for every agent (`DocumentAgent.call_llm`, etc.)
+   - OpenAI SDK spans via OpenInference instrumentation
+
+2. **Capture span identifiers**: Every `/api/ask` response includes a `telemetry` payload:
+   ```json
+   {
+     "trace_id": "35f8…",
+     "span_id": "7c2a…"
+   }
+   ```
+   These IDs are used by the evaluation runner so Phoenix can stitch pass/fail annotations directly onto the spans.
+
+3. **Run evaluations** (see below) to push DocumentEvaluations that align with the captured spans.
 
 ## 🧪 Streaming Evaluation Runs to Phoenix
 

@@ -25,6 +25,7 @@ from document_processor import DocumentProcessor
 from simple_vector_store import SimpleVectorStore
 from multi_agent_system import OrchestratorAgent
 from project_manager import ProjectManager
+from telemetry import init_tracing
 
 # Configuration
 # Get the backend directory and project root
@@ -34,14 +35,8 @@ PROJECT_ROOT = BACKEND_DIR.parent
 # Load environment variables
 load_dotenv(PROJECT_ROOT / ".env")
 
-# Initialize Arize Observability (optional - allow server to start even if this fails)
-arize_config = None
-try:
-    from arize_config import initialize_arize_observability
-    arize_config = initialize_arize_observability()
-except Exception as e:
-    print(f"Warning: Could not initialize Arize Observability: {e}")
-    print("Continuing without observability...")
+# Initialize Phoenix tracing (best effort)
+telemetry_provider = init_tracing()
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -93,6 +88,7 @@ class Answer(BaseModel):
     sources: List[Dict[str, Any]]
     confidence: float
     agents_used: Optional[List[str]] = []
+    telemetry: Optional[Dict[str, Any]] = None
 
 class BatchQuestion(BaseModel):
     questions: List[str]
@@ -366,7 +362,14 @@ async def ask_question(q: Question):
             "has_document_ids": bool(q.document_ids)
         }
     ) as span:
-        
+        def build_telemetry_payload() -> Dict[str, str]:
+            """Return the trace/span identifiers for the current request span."""
+            span_context = span.get_span_context()
+            return {
+                "trace_id": f"{span_context.trace_id:032x}",
+                "span_id": f"{span_context.span_id:016x}",
+            }
+
         if not AI_ENABLED:
             raise HTTPException(
                 status_code=503,
@@ -396,11 +399,13 @@ async def ask_question(q: Question):
             
             if not relevant_docs:
                 # Don't increment question count if there are no documents
+                span.set_status(Status(StatusCode.OK))
                 return Answer(
                     question=q.question,
                     answer="I don't have any documents to answer this question. Please upload relevant documents first.",
                     sources=[],
-                    confidence=0.0
+                    confidence=0.0,
+                    telemetry=build_telemetry_payload()
                 )
             
             # Use Multi-Agent Orchestrator for comprehensive answer
@@ -438,18 +443,22 @@ async def ask_question(q: Question):
             # Set success status
             span.set_status(Status(StatusCode.OK))
             
+            telemetry_payload = build_telemetry_payload()
+
             answer = Answer(
                 question=result["question"],
                 answer=result["answer"],
                 sources=result["sources"],
                 confidence=result["confidence"],
-                agents_used=result.get("agents_used", [])
+                agents_used=result.get("agents_used", []),
+                telemetry=telemetry_payload
             )
             
             # Include qa_id in response for frontend tracking
             answer_dict = answer.dict()
             if qa_id:
                 answer_dict["qa_id"] = qa_id
+            answer_dict["telemetry"] = telemetry_payload
             
             return answer_dict
             

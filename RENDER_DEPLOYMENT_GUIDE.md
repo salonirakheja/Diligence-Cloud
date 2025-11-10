@@ -23,7 +23,7 @@ Even though `render.yaml` exists, you need to manually configure these settings:
 - **Branch**: main
 - **Root Directory**: (leave blank)
 - **Runtime**: Python 3
-- **Build Command**: `pip install -r backend/requirements.txt`
+- **Build Command**: `pip install -r requirements.txt`
 - **Start Command**: `cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT`
 
 **OR** delete the existing service and let Render auto-detect from `render.yaml` on a fresh deployment.
@@ -31,13 +31,14 @@ Even though `render.yaml` exists, you need to manually configure these settings:
 ### Step 3: Add Environment Variables
 In the Render dashboard → Environment section, add:
 - **OPENAI_API_KEY**: `your-openai-api-key-here`
-- **PHOENIX_API_URL**: `https://api.phoenix.arize.com/v1` *(for Arize Cloud logging)*
-- **PHOENIX_API_KEY**: `your-phoenix-workspace-api-key`
-- **PHOENIX_PROJECT**: `diligence-evals` *(or any name you prefer)*
+- **PHOENIX_API_URL**: `https://app.phoenix.arize.com/s/<workspace>/v1`
+- **PHOENIX_API_KEY**: *your Phoenix user key (Settings → API Keys → User Keys)*
+- **PHOENIX_PROJECT**: `Diligence-Cloud` *(or any project label you want in Phoenix)*
 - Optional:
   - **OPENAI_MODEL**: `gpt-4o-mini` (default)
   - **OPENROUTER_API_KEY**: If using OpenRouter instead
-  - **PHOENIX_LOCAL** / **ARIZE_API_KEY** / **ARIZE_SPACE_ID**: if you also run tracing via `backend/main.py`
+  - **PHOENIX_SERVICE_NAME**: Override the service name reported in spans
+  - **PHOENIX_TRACES_ENDPOINT**: Explicitly set OTLP endpoint (defaults to `${PHOENIX_API_URL}/traces`)
 
 ### Step 4: Add Persistent Disk (Important!)
 1. In the Render dashboard, go to **"Disks"**
