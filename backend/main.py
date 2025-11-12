@@ -32,6 +32,17 @@ from telemetry import init_tracing
 BACKEND_DIR = Path(__file__).parent
 PROJECT_ROOT = BACKEND_DIR.parent
 
+# Check if we're on Render (persistent disk mounted at /opt/render/project/src/data)
+RENDER_DATA_DIR = Path("/opt/render/project/src/data")
+if RENDER_DATA_DIR.exists():
+    # Use Render's persistent disk
+    DATA_DIR = RENDER_DATA_DIR
+    print(f"[CONFIG] Using Render persistent disk: {DATA_DIR}")
+else:
+    # Use local data directory
+    DATA_DIR = PROJECT_ROOT / "data"
+    print(f"[CONFIG] Using local data directory: {DATA_DIR}")
+
 # Load environment variables
 load_dotenv(PROJECT_ROOT / ".env")
 
@@ -53,13 +64,21 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-UPLOAD_DIR = BACKEND_DIR / "uploads"
+
+# Use persistent disk for uploads on Render, otherwise use backend/uploads
+if RENDER_DATA_DIR.exists():
+    UPLOAD_DIR = RENDER_DATA_DIR / "uploads"
+else:
+    UPLOAD_DIR = BACKEND_DIR / "uploads"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+print(f"[CONFIG] Upload directory: {UPLOAD_DIR}")
 
 # Initialize components
 doc_processor = DocumentProcessor()
-vector_store = SimpleVectorStore(persist_directory=str(PROJECT_ROOT / "data" / "vector_db"))
-project_manager = ProjectManager(projects_file=str(PROJECT_ROOT / "data" / "projects.json"))
+vector_store = SimpleVectorStore(persist_directory=str(DATA_DIR / "vector_db"))
+project_manager = ProjectManager(projects_file=str(DATA_DIR / "projects.json"))
+print(f"[CONFIG] Vector store directory: {DATA_DIR / 'vector_db'}")
+print(f"[CONFIG] Projects file: {DATA_DIR / 'projects.json'}")
 
 # Check for API key
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
