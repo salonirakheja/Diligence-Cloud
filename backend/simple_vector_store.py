@@ -10,6 +10,7 @@ from typing import List, Dict, Optional
 from pathlib import Path
 from datetime import datetime
 import openai
+import sys
 
 
 class SimpleVectorStore:
@@ -23,15 +24,15 @@ class SimpleVectorStore:
         self.db_file = self.persist_directory / "documents.json"
         self.qa_file = self.persist_directory / "qa_history.json"
         
-        print(f"[VECTOR_STORE] Initializing with directory: {self.persist_directory}")
-        print(f"[VECTOR_STORE] DB file: {self.db_file}")
-        print(f"[VECTOR_STORE] DB file exists: {self.db_file.exists()}")
+        print(f"[VECTOR_STORE] Initializing with directory: {self.persist_directory}", file=sys.stderr, flush=True)
+        print(f"[VECTOR_STORE] DB file: {self.db_file}", file=sys.stderr, flush=True)
+        print(f"[VECTOR_STORE] DB file exists: {self.db_file.exists()}", file=sys.stderr, flush=True)
         
         self.documents = self._load_documents()
         self.qa_history = self._load_qa_history()
         
-        print(f"[VECTOR_STORE] Loaded {len(self.documents)} documents")
-        print(f"[VECTOR_STORE] Document IDs: {list(self.documents.keys())[:5]}...")
+        print(f"[VECTOR_STORE] Loaded {len(self.documents)} documents", file=sys.stderr, flush=True)
+        print(f"[VECTOR_STORE] Document IDs: {list(self.documents.keys())[:5]}...", file=sys.stderr, flush=True)
         
         # Set OpenAI API key
         self.api_key = os.getenv("OPENAI_API_KEY") or os.getenv("OPENROUTER_API_KEY")
@@ -45,49 +46,54 @@ class SimpleVectorStore:
         """Load documents from JSON file"""
         if self.db_file.exists():
             try:
-                print(f"[VECTOR_STORE] Loading documents from {self.db_file}")
+                print(f"[VECTOR_STORE] Loading documents from {self.db_file}", file=sys.stderr, flush=True)
                 with open(self.db_file, 'r', encoding='utf-8') as f:
                     docs = json.load(f)
-                    print(f"[VECTOR_STORE] Loaded {len(docs)} documents from file")
+                    print(f"[VECTOR_STORE] Loaded {len(docs)} documents from file", file=sys.stderr, flush=True)
                     return docs
             except Exception as e:
-                print(f"[VECTOR_STORE] ERROR loading documents: {e}")
+                print(f"[VECTOR_STORE] ERROR loading documents: {e}", file=sys.stderr, flush=True)
                 return {}
         else:
-            print(f"[VECTOR_STORE] DB file does not exist, starting with empty store")
+            print(f"[VECTOR_STORE] DB file does not exist, starting with empty store", file=sys.stderr, flush=True)
         return {}
     
     def _save_documents(self):
         """Save documents to JSON file"""
+        import sys
         try:
-            print(f"[VECTOR_STORE] Saving {len(self.documents)} documents to {self.db_file}")
-            print(f"[VECTOR_STORE] Parent directory exists: {self.db_file.parent.exists()}")
-            print(f"[VECTOR_STORE] Parent directory: {self.db_file.parent}")
+            print(f"[VECTOR_STORE] Saving {len(self.documents)} documents to {self.db_file}", file=sys.stderr, flush=True)
+            print(f"[VECTOR_STORE] Parent directory exists: {self.db_file.parent.exists()}", file=sys.stderr, flush=True)
+            print(f"[VECTOR_STORE] Parent directory: {self.db_file.parent}", file=sys.stderr, flush=True)
             
             # Ensure parent directory exists
             self.db_file.parent.mkdir(parents=True, exist_ok=True)
+            print(f"[VECTOR_STORE] Directory created/verified", file=sys.stderr, flush=True)
             
             # Write to a temporary file first, then rename (atomic operation)
             temp_file = self.db_file.with_suffix('.json.tmp')
+            print(f"[VECTOR_STORE] Writing to temp file: {temp_file}", file=sys.stderr, flush=True)
             with open(temp_file, 'w', encoding='utf-8') as f:
                 json.dump(self.documents, f, indent=2)
                 f.flush()
                 os.fsync(f.fileno())  # Force write to disk
+            print(f"[VECTOR_STORE] Temp file written, size: {temp_file.stat().st_size} bytes", file=sys.stderr, flush=True)
             
             # Atomic rename
             temp_file.replace(self.db_file)
+            print(f"[VECTOR_STORE] Renamed temp file to {self.db_file}", file=sys.stderr, flush=True)
             
             # Verify file was written
             if self.db_file.exists():
                 file_size = self.db_file.stat().st_size
-                print(f"[VECTOR_STORE] Successfully saved documents (file size: {file_size} bytes)")
+                print(f"[VECTOR_STORE] Successfully saved documents (file size: {file_size} bytes)", file=sys.stderr, flush=True)
             else:
                 raise Exception(f"File was not created at {self.db_file}")
                 
         except Exception as e:
-            print(f"[VECTOR_STORE] ERROR saving documents: {e}")
+            print(f"[VECTOR_STORE] ERROR saving documents: {e}", file=sys.stderr, flush=True)
             import traceback
-            traceback.print_exc()
+            traceback.print_exc(file=sys.stderr)
             raise
     
     def _load_qa_history(self) -> Dict:
@@ -171,9 +177,11 @@ class SimpleVectorStore:
                     })
             
             # Save to disk
+            print(f"[VECTOR_STORE] About to save documents to disk...", file=sys.stderr, flush=True)
             self._save_documents()
+            print(f"[VECTOR_STORE] Documents saved successfully", file=sys.stderr, flush=True)
             
-            print(f"Added document {doc_id} with {len(chunks)} chunks")
+            print(f"Added document {doc_id} with {len(chunks)} chunks", file=sys.stderr, flush=True)
         
         except Exception as e:
             raise Exception(f"Failed to add document: {str(e)}")
