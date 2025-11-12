@@ -232,6 +232,17 @@ async def debug_info():
         "cwd": str(Path.cwd())
     }
 
+@app.get("/test")
+async def test_endpoint():
+    """Simple test endpoint to verify backend is receiving requests"""
+    import sys
+    print(f"[TEST] Test endpoint called!", file=sys.stderr, flush=True)
+    return {
+        "status": "ok",
+        "message": "Backend is receiving requests",
+        "timestamp": datetime.now().isoformat()
+    }
+
 
 # ============================================================
 # PROJECT MANAGEMENT ENDPOINTS
