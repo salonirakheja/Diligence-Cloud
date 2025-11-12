@@ -1343,7 +1343,13 @@
     </div>
     
     <script>
-        const API = 'http://localhost:8002';
+        const API = (() => {
+            const { hostname, origin } = window.location;
+            if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                return 'http://localhost:8002';
+            }
+            return origin.replace(/\/$/, '');
+        })();
         let qs = [];
         let currentProjectId = null;
         let currentSubfolderId = null;
