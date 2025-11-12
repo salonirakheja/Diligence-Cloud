@@ -11,7 +11,14 @@ import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from opentelemetry import trace
 from opentelemetry.trace import Status, StatusCode
-from opentelemetry.context import attach, detach, get_current
+try:
+    from opentelemetry.context import attach, detach, get_current
+except ImportError:
+    # Fallback for older OpenTelemetry versions
+    from opentelemetry import context
+    get_current = context.get_current
+    attach = context.attach
+    detach = context.detach
 
 
 class BaseAgent:
@@ -536,7 +543,7 @@ class OrchestratorAgent:
             # Step 7: Fact-check the answer
             print(f"   [FACT-CHECK] Calling FactCheckAgent for verification...")
             try:
-            verification = self.fact_check_agent.verify(final_answer, question, context)
+                verification = self.fact_check_agent.verify(final_answer, question, context)
             except Exception as e:
                 print(f"   [⚠️] Fact-check failed: {str(e)}")
                 # Use default confidence if fact-check fails
