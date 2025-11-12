@@ -65,6 +65,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Add request logging middleware
+@app.middleware("http")
+async def log_requests(request, call_next):
+    """Log all incoming requests"""
+    import time
+    start_time = time.time()
+    print(f"[REQUEST] {request.method} {request.url.path} - Client: {request.client.host if request.client else 'unknown'}")
+    if request.url.query:
+        print(f"[REQUEST] Query params: {request.url.query}")
+    
+    response = await call_next(request)
+    process_time = time.time() - start_time
+    print(f"[REQUEST] {request.method} {request.url.path} - Status: {response.status_code} - Time: {process_time:.3f}s")
+    return response
+
 # Use persistent disk for uploads on Render, otherwise use backend/uploads
 if RENDER_DATA_DIR.exists():
     UPLOAD_DIR = RENDER_DATA_DIR / "uploads"
@@ -338,7 +353,11 @@ async def upload_document(file: UploadFile = File(...), project_id: str = "defau
     Upload and process a document
     Supports: PDF, Excel (.xlsx, .xls, .csv), Word (.docx), Text (.txt)
     """
-    print(f"[UPLOAD] Received upload request for project_id: {project_id}, filename: {file.filename}")
+    import sys
+    print(f"[UPLOAD] ========== UPLOAD STARTED ==========", file=sys.stderr)
+    print(f"[UPLOAD] Received upload request for project_id: {project_id}, filename: {file.filename}", file=sys.stderr)
+    print(f"[UPLOAD] File content type: {file.content_type}", file=sys.stderr)
+    print(f"[UPLOAD] Upload directory: {UPLOAD_DIR}", file=sys.stderr)
     
     if not AI_ENABLED:
         raise HTTPException(
@@ -351,24 +370,30 @@ async def upload_document(file: UploadFile = File(...), project_id: str = "defau
         project = project_manager.get_project(project_id)
         if not project:
             raise HTTPException(status_code=404, detail=f"Project '{project_id}' not found")
-        print(f"[UPLOAD] Project verified: {project['name']}")
+        print(f"[UPLOAD] Project verified: {project['name']}", file=sys.stderr)
         
         # Generate unique ID
         doc_id = str(uuid.uuid4())
+        print(f"[UPLOAD] Generated doc_id: {doc_id}", file=sys.stderr)
         
         # Save file temporarily
         file_path = UPLOAD_DIR / f"{doc_id}_{file.filename}"
+        print(f"[UPLOAD] Saving file to: {file_path}", file=sys.stderr)
         
         # Read and save file
         content = await file.read()
+        print(f"[UPLOAD] Read {len(content)} bytes from file", file=sys.stderr)
         with open(file_path, "wb") as f:
             f.write(content)
+        print(f"[UPLOAD] File saved to disk: {file_path.exists()}", file=sys.stderr)
         
         # Process document
+        print(f"[UPLOAD] Processing document...", file=sys.stderr)
         doc_data = doc_processor.process(str(file_path))
+        print(f"[UPLOAD] Document processed: {len(doc_data.get('text', ''))} characters", file=sys.stderr)
         
         # Store in vector database
-        print(f"[UPLOAD] Adding document to vector store: doc_id={doc_id}, project_id={project_id}")
+        print(f"[UPLOAD] Adding document to vector store: doc_id={doc_id}, project_id={project_id}", file=sys.stderr)
         vector_store.add_document(
             doc_id=doc_id,
             text=doc_data['text'],
@@ -385,9 +410,10 @@ async def upload_document(file: UploadFile = File(...), project_id: str = "defau
         
         # Verify document was saved
         saved_docs = vector_store.list_documents(project_id=project_id)
-        print(f"[UPLOAD] Document saved with doc_id: {doc_id}, project_id: {project_id}")
-        print(f"[UPLOAD] Total documents in project after save: {len(saved_docs)}")
-        print(f"[UPLOAD] Vector store has {len(vector_store.documents)} documents in memory")
+        print(f"[UPLOAD] Document saved with doc_id: {doc_id}, project_id: {project_id}", file=sys.stderr)
+        print(f"[UPLOAD] Total documents in project after save: {len(saved_docs)}", file=sys.stderr)
+        print(f"[UPLOAD] Vector store has {len(vector_store.documents)} documents in memory", file=sys.stderr)
+        print(f"[UPLOAD] ========== UPLOAD COMPLETED ==========", file=sys.stderr)
         
         # Note: Document and question counts removed per user request
         
