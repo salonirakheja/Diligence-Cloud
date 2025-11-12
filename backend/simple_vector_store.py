@@ -61,11 +61,33 @@ class SimpleVectorStore:
         """Save documents to JSON file"""
         try:
             print(f"[VECTOR_STORE] Saving {len(self.documents)} documents to {self.db_file}")
-            with open(self.db_file, 'w', encoding='utf-8') as f:
+            print(f"[VECTOR_STORE] Parent directory exists: {self.db_file.parent.exists()}")
+            print(f"[VECTOR_STORE] Parent directory: {self.db_file.parent}")
+            
+            # Ensure parent directory exists
+            self.db_file.parent.mkdir(parents=True, exist_ok=True)
+            
+            # Write to a temporary file first, then rename (atomic operation)
+            temp_file = self.db_file.with_suffix('.json.tmp')
+            with open(temp_file, 'w', encoding='utf-8') as f:
                 json.dump(self.documents, f, indent=2)
-            print(f"[VECTOR_STORE] Successfully saved documents")
+                f.flush()
+                os.fsync(f.fileno())  # Force write to disk
+            
+            # Atomic rename
+            temp_file.replace(self.db_file)
+            
+            # Verify file was written
+            if self.db_file.exists():
+                file_size = self.db_file.stat().st_size
+                print(f"[VECTOR_STORE] Successfully saved documents (file size: {file_size} bytes)")
+            else:
+                raise Exception(f"File was not created at {self.db_file}")
+                
         except Exception as e:
             print(f"[VECTOR_STORE] ERROR saving documents: {e}")
+            import traceback
+            traceback.print_exc()
             raise
     
     def _load_qa_history(self) -> Dict:
