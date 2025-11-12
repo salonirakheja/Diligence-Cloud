@@ -11,6 +11,7 @@ import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from opentelemetry import trace
 from opentelemetry.trace import Status, StatusCode
+from opentelemetry.context import attach, detach, get_current
 
 
 class BaseAgent:
@@ -120,8 +121,16 @@ class DocumentAgent(BaseAgent):
     
     def search_and_cite(self, question: str, context: List[Dict]) -> Dict:
         """Find most relevant documents and provide precise citations"""
-        
-        system = """You are a Document Retrieval Specialist for due diligence.
+        with self.tracer.start_as_current_span(
+            "DocumentAgent.search_and_cite",
+            attributes={
+                "agent.name": self.name,
+                "question": question[:100],
+                "context.size": len(context)
+            }
+        ) as span:
+            try:
+                system = """You are a Document Retrieval Specialist for due diligence.
 Your role is to:
 1. Identify ONLY the documents that directly contain information needed to answer the question
 2. Extract ONLY the key passages relevant to the question
@@ -130,18 +139,18 @@ Your role is to:
 
 Focus on relevance - only cite documents that directly help answer what was asked."""
 
-        # Format context with normalized names
-        context_text = ""
-        normalized_sources = []
-        for i, doc in enumerate(context[:5], 1):
-            original_filename = doc['metadata'].get('filename', f'Document {i}')
-            normalized_name = self.normalize_document_name(original_filename)
-            normalized_sources.append(normalized_name)
-            
-            text = doc['text'][:500]  # First 500 chars
-            context_text += f"\n\n[Source {i}: {normalized_name}]\n{text}..."
-        
-        user = f"""Question: {question}
+                # Format context with normalized names
+                context_text = ""
+                normalized_sources = []
+                for i, doc in enumerate(context[:5], 1):
+                    original_filename = doc['metadata'].get('filename', f'Document {i}')
+                    normalized_name = self.normalize_document_name(original_filename)
+                    normalized_sources.append(normalized_name)
+                    
+                    text = doc['text'][:500]  # First 500 chars
+                    context_text += f"\n\n[Source {i}: {normalized_name}]\n{text}..."
+                
+                user = f"""Question: {question}
 
 Available Documents:
 {context_text}
@@ -151,14 +160,22 @@ Task: Identify ONLY the documents that contain information directly needed to an
 - Extract ONLY passages that directly help answer the question
 - List document names and relevant key passages only"""
 
-        result = self.call_llm(system, user)
-        
-        return {
-            "agent": "DocumentAgent",
-            "findings": result,
-            "sources_checked": normalized_sources,
-            "relevant_sources": normalized_sources[:3]  # Top 3 candidates max
-        }
+                result = self.call_llm(system, user)
+                
+                span.set_attribute("sources.count", len(normalized_sources))
+                span.set_status(Status(StatusCode.OK))
+                
+                return {
+                    "agent": "DocumentAgent",
+                    "findings": result,
+                    "sources_checked": normalized_sources,
+                    "relevant_sources": normalized_sources[:3]  # Top 3 candidates max
+                }
+            except Exception as e:
+                span.set_status(Status(StatusCode.ERROR, description=str(e)))
+                span.set_attribute("error", True)
+                span.set_attribute("error.message", str(e))
+                raise
 
 
 class AnalysisAgent(BaseAgent):
@@ -166,8 +183,16 @@ class AnalysisAgent(BaseAgent):
     
     def analyze(self, question: str, document_findings: str, context: List[Dict]) -> Dict:
         """Provide comprehensive analysis with insights"""
-        
-        system = """You are a Senior Due Diligence Analyst.
+        with self.tracer.start_as_current_span(
+            "AnalysisAgent.analyze",
+            attributes={
+                "agent.name": self.name,
+                "question": question[:100],
+                "context.size": len(context)
+            }
+        ) as span:
+            try:
+                system = """You are a Senior Due Diligence Analyst.
 Your role is to provide focused analysis that directly answers the question.
 
 IMPORTANT: 
@@ -177,13 +202,13 @@ IMPORTANT:
 - Focus on insights that directly address what was asked
 - Skip tangential information even if it's interesting"""
 
-        # Get more context
-        context_text = "\n\n".join([
-            f"[{doc['metadata'].get('filename', 'Document')}]\n{doc['text'][:800]}"
-            for doc in context[:3]
-        ])
-        
-        user = f"""Question: {question}
+                # Get more context
+                context_text = "\n\n".join([
+                    f"[{doc['metadata'].get('filename', 'Document')}]\n{doc['text'][:800]}"
+                    for doc in context[:3]
+                ])
+                
+                user = f"""Question: {question}
 
 Document Findings:
 {document_findings}
@@ -197,13 +222,21 @@ Provide focused analysis that directly answers: "{question}"
 - Keep it concise (2-4 sentences typically)
 - Focus on insights that directly address what was asked"""
 
-        result = self.call_llm(system, user, temperature=0.4)
-        
-        return {
-            "agent": "AnalysisAgent",
-            "analysis": result,
-            "depth": "comprehensive"
-        }
+                result = self.call_llm(system, user, temperature=0.4)
+                
+                span.set_attribute("response.length", len(result))
+                span.set_status(Status(StatusCode.OK))
+                
+                return {
+                    "agent": "AnalysisAgent",
+                    "analysis": result,
+                    "depth": "comprehensive"
+                }
+            except Exception as e:
+                span.set_status(Status(StatusCode.ERROR, description=str(e)))
+                span.set_attribute("error", True)
+                span.set_attribute("error.message", str(e))
+                raise
 
 
 class DataExtractionAgent(BaseAgent):
@@ -211,8 +244,16 @@ class DataExtractionAgent(BaseAgent):
     
     def extract(self, question: str, context: List[Dict]) -> Dict:
         """Extract relevant data points, numbers, and metrics"""
-        
-        system = """You are a Data Extraction Specialist for due diligence.
+        with self.tracer.start_as_current_span(
+            "DataExtractionAgent.extract",
+            attributes={
+                "agent.name": self.name,
+                "question": question[:100],
+                "context.size": len(context)
+            }
+        ) as span:
+            try:
+                system = """You are a Data Extraction Specialist for due diligence.
 Your role is to extract ONLY the numbers, percentages, and metrics that directly answer the question asked.
 
 CRITICAL RULES:
@@ -229,12 +270,12 @@ Example for question "What is the revenue?":
 
 Focus on answering ONLY what was asked, nothing more."""
 
-        context_text = "\n\n".join([
-            f"[{doc['metadata'].get('filename')}]\n{doc['text'][:1000]}"
-            for doc in context[:5]
-        ])
-        
-        user = f"""Question: {question}
+                context_text = "\n\n".join([
+                    f"[{doc['metadata'].get('filename')}]\n{doc['text'][:1000]}"
+                    for doc in context[:5]
+                ])
+                
+                user = f"""Question: {question}
 
 Documents:
 {context_text}
@@ -250,13 +291,21 @@ REQUIREMENTS:
 
 Example: If question is "What is the revenue?", extract ONLY revenue figures."""
 
-        result = self.call_llm(system, user)
-        
-        return {
-            "agent": "DataExtractionAgent",
-            "extracted_data": result,
-            "data_points_found": True
-        }
+                result = self.call_llm(system, user)
+                
+                span.set_attribute("response.length", len(result))
+                span.set_status(Status(StatusCode.OK))
+                
+                return {
+                    "agent": "DataExtractionAgent",
+                    "extracted_data": result,
+                    "data_points_found": True
+                }
+            except Exception as e:
+                span.set_status(Status(StatusCode.ERROR, description=str(e)))
+                span.set_attribute("error", True)
+                span.set_attribute("error.message", str(e))
+                raise
 
 
 class FactCheckAgent(BaseAgent):
@@ -264,8 +313,17 @@ class FactCheckAgent(BaseAgent):
     
     def verify(self, answer: str, question: str, context: List[Dict]) -> Dict:
         """Verify answer accuracy against source documents"""
-        
-        system = """You are a Fact-Checking Specialist.
+        with self.tracer.start_as_current_span(
+            "FactCheckAgent.verify",
+            attributes={
+                "agent.name": self.name,
+                "question": question[:100],
+                "answer.length": len(answer),
+                "context.size": len(context)
+            }
+        ) as span:
+            try:
+                system = """You are a Fact-Checking Specialist.
 Your role is to:
 1. Verify claims against source documents
 2. Check for accuracy and completeness
@@ -275,12 +333,12 @@ Your role is to:
 
 Be thorough and objective."""
 
-        context_text = "\n\n".join([
-            f"[{doc['metadata'].get('filename')}]\n{doc['text'][:800]}"
-            for doc in context[:5]
-        ])
-        
-        user = f"""Question: {question}
+                context_text = "\n\n".join([
+                    f"[{doc['metadata'].get('filename')}]\n{doc['text'][:800]}"
+                    for doc in context[:5]
+                ])
+                
+                user = f"""Question: {question}
 
 Proposed Answer:
 {answer}
@@ -290,23 +348,31 @@ Source Documents:
 
 Verify this answer against the source documents. Check for accuracy, completeness, and identify any issues."""
 
-        result = self.call_llm(system, user)
-        
-        # Simple confidence scoring based on keywords
-        confidence = 0.85
-        if "accurate" in result.lower() or "correct" in result.lower():
-            confidence = 0.95
-        elif "partially" in result.lower() or "some issues" in result.lower():
-            confidence = 0.70
-        elif "inaccurate" in result.lower() or "incorrect" in result.lower():
-            confidence = 0.40
-        
-        return {
-            "agent": "FactCheckAgent",
-            "verification": result,
-            "confidence": confidence,
-            "verified": True
-        }
+                result = self.call_llm(system, user)
+                
+                # Simple confidence scoring based on keywords
+                confidence = 0.85
+                if "accurate" in result.lower() or "correct" in result.lower():
+                    confidence = 0.95
+                elif "partially" in result.lower() or "some issues" in result.lower():
+                    confidence = 0.70
+                elif "inaccurate" in result.lower() or "incorrect" in result.lower():
+                    confidence = 0.40
+                
+                span.set_attribute("confidence", confidence)
+                span.set_status(Status(StatusCode.OK))
+                
+                return {
+                    "agent": "FactCheckAgent",
+                    "verification": result,
+                    "confidence": confidence,
+                    "verified": True
+                }
+            except Exception as e:
+                span.set_status(Status(StatusCode.ERROR, description=str(e)))
+                span.set_attribute("error", True)
+                span.set_attribute("error.message", str(e))
+                raise
 
 
 class OrchestratorAgent:
@@ -367,17 +433,31 @@ class OrchestratorAgent:
             # Step 3: Call specialized agents in parallel based on question type
             parallel_tasks = []
             
+            # Capture current OpenTelemetry context for propagation to worker threads
+            current_context = get_current()
+            
+            def wrap_with_context(task_func):
+                """Wrap a task function to restore OpenTelemetry context in worker thread"""
+                def wrapped():
+                    # Restore the context in the worker thread
+                    token = attach(current_context)
+                    try:
+                        return task_func()
+                    finally:
+                        detach(token)
+                return wrapped
+            
             if question_type in ["analysis", "summary", "comparison", "general"]:
                 print(f"   [ANALYSIS] Calling AnalysisAgent (parallel)...")
                 def run_analysis():
                     return self.analysis_agent.analyze(question, doc_result['findings'], context)
-                parallel_tasks.append(("AnalysisAgent", "analysis", run_analysis))
+                parallel_tasks.append(("AnalysisAgent", "analysis", wrap_with_context(run_analysis)))
             
             if question_type in ["data", "financial", "metrics"]:
                 print(f"   [DATA] Calling DataExtractionAgent (parallel)...")
                 def run_data_extraction():
                     return self.data_agent.extract(question, context)
-                parallel_tasks.append(("DataExtractionAgent", "data", run_data_extraction))
+                parallel_tasks.append(("DataExtractionAgent", "data", wrap_with_context(run_data_extraction)))
             
             # Execute agents in parallel if there are multiple
             if parallel_tasks:
@@ -456,7 +536,7 @@ class OrchestratorAgent:
             # Step 7: Fact-check the answer
             print(f"   [FACT-CHECK] Calling FactCheckAgent for verification...")
             try:
-                verification = self.fact_check_agent.verify(final_answer, question, context)
+            verification = self.fact_check_agent.verify(final_answer, question, context)
             except Exception as e:
                 print(f"   [⚠️] Fact-check failed: {str(e)}")
                 # Use default confidence if fact-check fails
