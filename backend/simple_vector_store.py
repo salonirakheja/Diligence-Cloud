@@ -22,8 +22,16 @@ class SimpleVectorStore:
         
         self.db_file = self.persist_directory / "documents.json"
         self.qa_file = self.persist_directory / "qa_history.json"
+        
+        print(f"[VECTOR_STORE] Initializing with directory: {self.persist_directory}")
+        print(f"[VECTOR_STORE] DB file: {self.db_file}")
+        print(f"[VECTOR_STORE] DB file exists: {self.db_file.exists()}")
+        
         self.documents = self._load_documents()
         self.qa_history = self._load_qa_history()
+        
+        print(f"[VECTOR_STORE] Loaded {len(self.documents)} documents")
+        print(f"[VECTOR_STORE] Document IDs: {list(self.documents.keys())[:5]}...")
         
         # Set OpenAI API key
         self.api_key = os.getenv("OPENAI_API_KEY") or os.getenv("OPENROUTER_API_KEY")
@@ -37,16 +45,28 @@ class SimpleVectorStore:
         """Load documents from JSON file"""
         if self.db_file.exists():
             try:
+                print(f"[VECTOR_STORE] Loading documents from {self.db_file}")
                 with open(self.db_file, 'r', encoding='utf-8') as f:
-                    return json.load(f)
-            except:
+                    docs = json.load(f)
+                    print(f"[VECTOR_STORE] Loaded {len(docs)} documents from file")
+                    return docs
+            except Exception as e:
+                print(f"[VECTOR_STORE] ERROR loading documents: {e}")
                 return {}
+        else:
+            print(f"[VECTOR_STORE] DB file does not exist, starting with empty store")
         return {}
     
     def _save_documents(self):
         """Save documents to JSON file"""
-        with open(self.db_file, 'w', encoding='utf-8') as f:
-            json.dump(self.documents, f, indent=2)
+        try:
+            print(f"[VECTOR_STORE] Saving {len(self.documents)} documents to {self.db_file}")
+            with open(self.db_file, 'w', encoding='utf-8') as f:
+                json.dump(self.documents, f, indent=2)
+            print(f"[VECTOR_STORE] Successfully saved documents")
+        except Exception as e:
+            print(f"[VECTOR_STORE] ERROR saving documents: {e}")
+            raise
     
     def _load_qa_history(self) -> Dict:
         """Load Q&A history from JSON file"""

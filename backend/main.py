@@ -178,6 +178,28 @@ async def health_check():
         "projects_count": len(project_manager.list_projects())
     }
 
+@app.get("/debug")
+async def debug_info():
+    """Debug endpoint to check configuration and state"""
+    import sys
+    return {
+        "data_dir": str(DATA_DIR),
+        "data_dir_exists": DATA_DIR.exists(),
+        "render_data_dir": str(RENDER_DATA_DIR),
+        "render_data_dir_exists": RENDER_DATA_DIR.exists(),
+        "vector_store_dir": str(DATA_DIR / "vector_db"),
+        "vector_store_dir_exists": (DATA_DIR / "vector_db").exists(),
+        "db_file": str(DATA_DIR / "vector_db" / "documents.json"),
+        "db_file_exists": (DATA_DIR / "vector_db" / "documents.json").exists(),
+        "upload_dir": str(UPLOAD_DIR),
+        "upload_dir_exists": UPLOAD_DIR.exists(),
+        "documents_in_memory": len(vector_store.documents),
+        "documents_list": len(vector_store.list_documents()),
+        "telemetry_enabled": telemetry_provider is not None,
+        "python_version": sys.version,
+        "cwd": str(Path.cwd())
+    }
+
 
 # ============================================================
 # PROJECT MANAGEMENT ENDPOINTS
@@ -331,6 +353,7 @@ async def upload_document(file: UploadFile = File(...), project_id: str = "defau
         doc_data = doc_processor.process(str(file_path))
         
         # Store in vector database
+        print(f"[UPLOAD] Adding document to vector store: doc_id={doc_id}, project_id={project_id}")
         vector_store.add_document(
             doc_id=doc_id,
             text=doc_data['text'],
@@ -345,7 +368,11 @@ async def upload_document(file: UploadFile = File(...), project_id: str = "defau
             project_id=project_id
         )
         
+        # Verify document was saved
+        saved_docs = vector_store.list_documents(project_id=project_id)
         print(f"[UPLOAD] Document saved with doc_id: {doc_id}, project_id: {project_id}")
+        print(f"[UPLOAD] Total documents in project after save: {len(saved_docs)}")
+        print(f"[UPLOAD] Vector store has {len(vector_store.documents)} documents in memory")
         
         # Note: Document and question counts removed per user request
         
@@ -374,6 +401,8 @@ async def ask_question(q: Question):
     """
     # Create span for the entire request
     tracer = trace.get_tracer(__name__)
+    print(f"[ASK] Telemetry provider: {telemetry_provider}")
+    print(f"[ASK] Tracer: {tracer}")
     with tracer.start_as_current_span(
         "api.ask_question",
         attributes={
@@ -381,6 +410,7 @@ async def ask_question(q: Question):
             "has_document_ids": bool(q.document_ids)
         }
     ) as span:
+        print(f"[ASK] Created span: {span.get_span_context()}")
         def build_telemetry_payload() -> Dict[str, str]:
             """Return the trace/span identifiers for the current request span."""
             span_context = span.get_span_context()
