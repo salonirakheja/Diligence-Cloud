@@ -168,14 +168,29 @@ async def serve_frontend():
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint"""
+    """Health check endpoint with debug info"""
+    import sys
     return {
         "status": "healthy",
         "service": "autonomous-diligence-cloud",
         "version": "1.0.0",
         "ai_enabled": AI_ENABLED,
         "documents_count": len(vector_store.list_documents()),
-        "projects_count": len(project_manager.list_projects())
+        "projects_count": len(project_manager.list_projects()),
+        "debug": {
+            "data_dir": str(DATA_DIR),
+            "data_dir_exists": DATA_DIR.exists(),
+            "render_data_dir": str(RENDER_DATA_DIR),
+            "render_data_dir_exists": RENDER_DATA_DIR.exists(),
+            "vector_store_dir": str(DATA_DIR / "vector_db"),
+            "vector_store_dir_exists": (DATA_DIR / "vector_db").exists(),
+            "db_file": str(DATA_DIR / "vector_db" / "documents.json"),
+            "db_file_exists": (DATA_DIR / "vector_db" / "documents.json").exists(),
+            "upload_dir": str(UPLOAD_DIR),
+            "upload_dir_exists": UPLOAD_DIR.exists(),
+            "documents_in_memory": len(vector_store.documents),
+            "telemetry_enabled": telemetry_provider is not None,
+        }
     }
 
 @app.get("/debug")
