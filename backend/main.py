@@ -70,14 +70,16 @@ app.add_middleware(
 async def log_requests(request, call_next):
     """Log all incoming requests"""
     import time
+    import sys
     start_time = time.time()
-    print(f"[REQUEST] {request.method} {request.url.path} - Client: {request.client.host if request.client else 'unknown'}")
+    print(f"[REQUEST] {request.method} {request.url.path} - Client: {request.client.host if request.client else 'unknown'}", file=sys.stderr, flush=True)
     if request.url.query:
-        print(f"[REQUEST] Query params: {request.url.query}")
+        print(f"[REQUEST] Query params: {request.url.query}", file=sys.stderr, flush=True)
+    print(f"[REQUEST] Headers: {dict(request.headers)}", file=sys.stderr, flush=True)
     
     response = await call_next(request)
     process_time = time.time() - start_time
-    print(f"[REQUEST] {request.method} {request.url.path} - Status: {response.status_code} - Time: {process_time:.3f}s")
+    print(f"[REQUEST] {request.method} {request.url.path} - Status: {response.status_code} - Time: {process_time:.3f}s", file=sys.stderr, flush=True)
     return response
 
 # Use persistent disk for uploads on Render, otherwise use backend/uploads
@@ -354,10 +356,10 @@ async def upload_document(file: UploadFile = File(...), project_id: str = "defau
     Supports: PDF, Excel (.xlsx, .xls, .csv), Word (.docx), Text (.txt)
     """
     import sys
-    print(f"[UPLOAD] ========== UPLOAD STARTED ==========", file=sys.stderr)
-    print(f"[UPLOAD] Received upload request for project_id: {project_id}, filename: {file.filename}", file=sys.stderr)
-    print(f"[UPLOAD] File content type: {file.content_type}", file=sys.stderr)
-    print(f"[UPLOAD] Upload directory: {UPLOAD_DIR}", file=sys.stderr)
+    print(f"[UPLOAD] ========== UPLOAD STARTED ==========", file=sys.stderr, flush=True)
+    print(f"[UPLOAD] Received upload request for project_id: {project_id}, filename: {file.filename}", file=sys.stderr, flush=True)
+    print(f"[UPLOAD] File content type: {file.content_type}", file=sys.stderr, flush=True)
+    print(f"[UPLOAD] Upload directory: {UPLOAD_DIR}", file=sys.stderr, flush=True)
     
     if not AI_ENABLED:
         raise HTTPException(
